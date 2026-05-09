@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+
+{% block title %}Print Bilty - {{ bill.name }}{% endblock %}
+
+{% block content %}
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #bilty-print, #bilty-print * {
+            visibility: visible;
+        }
+        #bilty-print {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+    
+    .bilty-container {
+        border: 3px solid #000;
+        padding: 15px;
+        font-family: 'Arial', sans-serif;
+        font-size: 11px;
+        background: white;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .bilty-header {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .bilty-header-left {
+        flex: 1;
+    }
+    
+    .bilty-header-left h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .bilty-header-left p {
+        margin: 5px 0;
+        font-size: 10px;
+    }
+    
+    .bilty-header-right {
+        text-align: right;
+        flex: 1;
+    }
+    
+    .bilty-header-right h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    .bilty-header-right .bilty-no {
+        font-size: 20px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+    
+    .info-row {
+        display: flex;
+        margin-bottom: 10px;
+        border: 1px solid #000;
+    }
+    
+    .info-box {
+        flex: 1;
+        padding: 8px;
+        border-right: 1px solid #000;
+    }
+    
+    .info-box:last-child {
+        border-right: none;
+    }
+    
+    .info-label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 3px;
+        font-size: 10px;
+    }
+    
+    .info-value {
+        font-size: 11px;
+        border-bottom: 1px dotted #000;
+        display: inline-block;
+        min-width: 80px;
+        padding-left: 3px;
+    }
+    
+    .party-section {
+        display: flex;
+        margin-bottom: 10px;
+    }
+    
+    .party-box {
+        flex: 1;
+        border: 1px solid #000;
+        padding: 8px;
+        margin-right: 10px;
+    }
+    
+    .party-box:last-child {
+        margin-right: 0;
+    }
+    
+    .party-title {
+        font-weight: bold;
+        background: #e0e0e0;
+        padding: 3px 5px;
+        margin: -8px -8px 8px -8px;
+        border-bottom: 1px solid #000;
+        font-size: 11px;
+    }
+    
+    .goods-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+    
+    .goods-table th,
+    .goods-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: left;
+        font-size: 10px;
+    }
+    
+    .goods-table th {
+        background: #e0e0e0;
+        font-weight: bold;
+    }
+    
+    .charges-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+    
+    .charges-table th,
+    .charges-table td {
+        border: 1px solid #000;
+        padding: 4px;
+        text-align: left;
+        font-size: 10px;
+    }
+    
+    .charges-table th {
+        background: #e0e0e0;
+        font-weight: bold;
+    }
+    
+    .charges-table .amount {
+        text-align: right;
+    }
+    
+    .total-row {
+        font-weight: bold;
+        background: #e0e0e0;
+    }
+    
+    .signature-section {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding-top: 10px;
+    }
+    
+    .signature-box {
+        text-align: center;
+        width: 30%;
+    }
+    
+    .signature-line {
+        border-top: 1px solid #000;
+        margin-top: 30px;
+        padding-top: 3px;
+        font-size: 10px;
+    }
+    
+    .terms-section {
+        font-size: 9px;
+        margin-top: 10px;
+        padding: 8px;
+        border: 1px solid #000;
+    }
+    
+    .terms-section strong {
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .terms-section ol {
+        margin: 3px 0;
+        padding-left: 18px;
+    }
+    
+    .terms-section li {
+        margin: 2px 0;
+    }
+</style>
+
+<div class="no-print mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Print Bilty - {{ bill.name }}</h4>
+        <div>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print
+            </button>
+            <a href="{{ url_for('transport_bills') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="bilty-print" class="bilty-container">
+    <!-- Header -->
+    <div class="bilty-header">
+        <div class="bilty-header-left">
+            <h2>TRANSPORT COMPANY</h2>
+            <p>Address: Your Company Address</p>
+            <p>Phone: +91 XXXXX XXXXX | GSTIN: XXAAAAA0000A1Z5</p>
+        </div>
+        <div class="bilty-header-right">
+            <h3>BILTY / C.N.</h3>
+            <div class="bilty-no">{{ bill.name }}</div>
+            <p>Date: {{ bill.date.strftime('%d-%m-%Y') if bill.date else '-' }}</p>
+        </div>
+    </div>
+    
+    <!-- Info Row -->
+    <div class="info-row">
+        <div class="info-box">
+            <span class="info-label">From:</span>
+            <span class="info-value">{{ bill.pickup_point or bill.branch_booking_location or '-' }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">To:</span>
+            <span class="info-value">{{ bill.delivery_location or '-' }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">Vehicle No:</span>
+            <span class="info-value">{{ bill.vehicle_number or (bill.vehicle.registration_number if bill.vehicle else '-') }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">GR No:</span>
+            <span class="info-value">{{ bill.gr_number or '-' }}</span>
+        </div>
+    </div>
+    
+    <!-- Consignor & Consignee -->
+    <div class="party-section">
+        <div class="party-box">
+            <div class="party-title">CONSIGNOR (SENDER)</div>
+            <div style="margin-bottom: 5px;">
+                <span class="info-label">Name:</span>
+                <span class="info-value">{{ bill.consignor_name or '-' }}</span>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <span class="info-label">Address:</span>
+                <span class="info-value">{{ bill.consignor_address or '-' }}</span>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <span class="info-label">GSTIN:</span>
+                <span class="info-value">{{ bill.consignor_gstin or '-' }}</span>
+            </div>
+            <div>
+                <span class="info-label">Mobile:</span>
+                <span class="info-value">{{ bill.consignor_mobile or '-' }}</span>
+            </div>
+        </div>
+        <div class="party-box">
+            <div class="party-title">CONSIGNEE (RECEIVER)</div>
+            <div style="margin-bottom: 5px;">
+                <span class="info-label">Name:</span>
+                <span class="info-value">{{ bill.consignee_name or '-' }}</span>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <span class="info-label">Address:</span>
+                <span class="info-value">{{ bill.consignee_address or '-' }}</span>
+            </div>
+            <div style="margin-bottom: 5px;">
+                <span class="info-label">GSTIN:</span>
+                <span class="info-value">{{ bill.consignee_gstin or '-' }}</span>
+            </div>
+            <div>
+                <span class="info-label">Mobile:</span>
+                <span class="info-value">{{ bill.consignee_mobile or '-' }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Goods Description -->
+    <table class="goods-table">
+        <thead>
+            <tr>
+                <th style="width: 40%">Article Description</th>
+                <th style="width: 15%">Packages</th>
+                <th style="width: 15%">Weight (Kg)</th>
+                <th style="width: 15%">Rate</th>
+                <th style="width: 15%">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ bill.article_description or '-' }}</td>
+                <td>{{ bill.number_of_packages or '-' }} {{ bill.package_type or '' }}</td>
+                <td>{{ bill.charged_weight or bill.actual_weight or '-' }}</td>
+                <td>{{ "{:,.2f}".format(bill.rate) if bill.rate else '-' }}</td>
+                <td>{{ "{:,.2f}".format(bill.net_freight) if bill.net_freight else '0.00' }}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Charges -->
+    <table class="charges-table">
+        <thead>
+            <tr>
+                <th style="width: 70%">Description</th>
+                <th style="width: 30%" class="amount">Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Basic Freight</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.basic_freight) if bill.basic_freight else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Loading Charge</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.loading_charge) if bill.loading_charge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Unloading Charge</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.unloading_charge) if bill.unloading_charge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Door Pickup</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.door_pickup_charge) if bill.door_pickup_charge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Door Delivery</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.door_delivery_charge) if bill.door_delivery_charge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Hamali</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.hamali_charge) if bill.hamali_charge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Detention</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.detention_charge) if bill.detention_charge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Toll</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.toll_charge) if bill.toll_charge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Fuel Surcharge</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.fuel_surcharge) if bill.fuel_surcharge else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Driver Allowance</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.driver_allowance) if bill.driver_allowance else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Other Charges</td>
+                <td class="amount">{{ "{:,.2f}".format(bill.other_charges) if bill.other_charges else '0.00' }}</td>
+            </tr>
+            <tr>
+                <td>Less: Discount</td>
+                <td class="amount">-{{ "{:,.2f}".format(bill.discount) if bill.discount else '0.00' }}</td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>Total Freight</strong></td>
+                <td class="amount"><strong>₹ {{ "{:,.2f}".format(bill.net_freight) if bill.net_freight else '0.00' }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- GST Details -->
+    {% if bill.gst_applicable %}
+    {% set total_gst_rate = (bill.igst_rate or 0) + (bill.cgst_rate or 0) + (bill.sgst_rate or 0) %}
+    {% set igst_amount = (bill.gst_amount or 0) * (bill.igst_rate or 0) / total_gst_rate if total_gst_rate > 0 else 0 %}
+    {% set cgst_amount = (bill.gst_amount or 0) * (bill.cgst_rate or 0) / total_gst_rate if total_gst_rate > 0 else 0 %}
+    {% set sgst_amount = (bill.gst_amount or 0) * (bill.sgst_rate or 0) / total_gst_rate if total_gst_rate > 0 else 0 %}
+    <table class="charges-table">
+        <thead>
+            <tr>
+                <th style="width: 40%">Tax Description</th>
+                <th style="width: 30%" class="amount">Rate (%)</th>
+                <th style="width: 30%" class="amount">Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>IGST</td>
+                <td class="amount">{{ bill.igst_rate or '0' }}%</td>
+                <td class="amount">{{ "{:,.2f}".format(igst_amount) }}</td>
+            </tr>
+            <tr>
+                <td>CGST</td>
+                <td class="amount">{{ bill.cgst_rate or '0' }}%</td>
+                <td class="amount">{{ "{:,.2f}".format(cgst_amount) }}</td>
+            </tr>
+            <tr>
+                <td>SGST</td>
+                <td class="amount">{{ bill.sgst_rate or '0' }}%</td>
+                <td class="amount">{{ "{:,.2f}".format(sgst_amount) }}</td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>Grand Total</strong></td>
+                <td class="amount">-</td>
+                <td class="amount"><strong>₹ {{ "{:,.2f}".format((bill.net_freight or 0) + (bill.gst_amount or 0)) }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    {% endif %}
+    
+    <!-- Payment Info -->
+    <div class="info-row">
+        <div class="info-box">
+            <span class="info-label">Payment Mode:</span>
+            <span class="info-value">{{ bill.freight_payment_mode or '-' }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">Advance:</span>
+            <span class="info-value">₹ {{ "{:,.2f}".format(bill.advance_amount) if bill.advance_amount else '0.00' }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">Balance:</span>
+            <span class="info-value">₹ {{ "{:,.2f}".format(bill.balance_amount) if bill.balance_amount else '0.00' }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">E-Way Bill:</span>
+            <span class="info-value">{{ bill.eway_bill_number or '-' }}</span>
+        </div>
+    </div>
+    
+    <!-- Terms & Conditions -->
+    <div class="terms-section">
+        <strong>Terms & Conditions:</strong>
+        <ol>
+            <li>Goods are booked at owner's risk. Company is not responsible for any loss or damage.</li>
+            <li>Claims for loss/damage must be made within 7 days of delivery.</li>
+            <li>Freight must be paid before delivery unless otherwise agreed.</li>
+            <li>Company reserves the right to hold goods until freight is paid.</li>
+        </ol>
+    </div>
+    
+    <!-- Signatures -->
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line">Consignor</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Consignee</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Transporter</div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 15px; font-size: 9px; border-top: 1px solid #000; padding-top: 5px;">
+        <p style="margin: 0;">This is a computer generated document. Subject to local jurisdiction only.</p>
+    </div>
+</div>
+{% endblock %}

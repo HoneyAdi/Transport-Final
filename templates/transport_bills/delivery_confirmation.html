@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Proof / Delivery Confirmation - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-check-circle"></i> Proof / Delivery Confirmation</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST" id="deliveryForm" enctype="multipart/form-data">
+            {% include '_tenant_selector.html' %}
+            
+            <!-- Select Bilty -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded">
+                    <h5 class="mb-0"><i class="bi bi-file-text"></i> Select Bilty for Delivery Confirmation</h5>
+                </div>
+                <div class="p-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bill_id" class="form-label">Select Bilty <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bill_id" name="bill_id" required>
+                                    <option value="">-- Select Bilty --</option>
+                                    {% for bill in bills %}
+                                    <option value="{{ bill.id }}"
+                                            data-gr-number="{{ bill.gr_number or '' }}"
+                                            data-consignor="{{ bill.party_information or '' }}"
+                                            data-destination="{{ bill.location.location if bill.location else '' }}"
+                                            data-vehicle="{{ bill.vehicle.registration_number if bill.vehicle else '' }}"
+                                            {% if selected_bill_id == bill.id %}selected{% endif %}>
+                                        {{ bill.name }} - {{ bill.gr_number or 'No GR Number' }} - {{ bill.party_information or 'No Party' }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text text-muted">Select the bilty to confirm delivery</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Bilty Details</label>
+                                <div id="billDetails" class="alert alert-info" style="display: none;">
+                                    <strong>GR Number:</strong> <span id="detailGrNumber"></span><br>
+                                    <strong>Consignor:</strong> <span id="detailConsignor"></span><br>
+                                    <strong>Destination:</strong> <span id="detailDestination"></span><br>
+                                    <strong>Vehicle:</strong> <span id="detailVehicle"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Confirmation Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded">
+                    <h5 class="mb-0"><i class="bi bi-check-circle"></i> Delivery Confirmation Details</h5>
+                </div>
+                <div class="p-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="delivered_by" class="form-label">Delivered By <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="delivered_by" name="delivered_by" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="received_by_name" class="form-label">Received By Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="received_by_name" name="received_by_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="received_by_signature" class="form-label">Received By Signature</label>
+                                <input type="text" class="form-control" id="received_by_signature" name="received_by_signature">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="pod_number" class="form-label">POD Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="pod_number" name="pod_number" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="seal_number" class="form-label">Seal Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="seal_number" name="seal_number" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="delivered_datetime" class="form-label">Delivery Date & Time <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" id="delivered_datetime" name="delivered_datetime" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="damage_shortage_report" class="form-label">Damage/Shortage Report</label>
+                                <textarea class="form-control" id="damage_shortage_report" name="damage_shortage_report" rows="3" placeholder="Report any damage or shortage..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="closed_by" class="form-label">Closed By <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="closed_by" name="closed_by" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="attachment" class="form-label">Upload Proof (POD/Signature)</label>
+                                <input type="file" class="form-control" id="attachment" name="attachment" accept="image/*,.pdf">
+                                <div class="form-text text-muted">Upload POD copy, signature, or other proof of delivery</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="remarks" class="form-label">Remarks</label>
+                                <textarea class="form-control" id="remarks" name="remarks" rows="2" placeholder="Any additional remarks..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-lg"></i> Confirm Delivery & Mark as Completed
+                </button>
+                <a href="{{ url_for('transport_bills') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const billSelect = document.getElementById('bill_id');
+    const billDetails = document.getElementById('billDetails');
+    
+    // Show bilty details when selected
+    billSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (this.value) {
+            document.getElementById('detailGrNumber').textContent = selectedOption.getAttribute('data-gr-number') || 'N/A';
+            document.getElementById('detailConsignor').textContent = selectedOption.getAttribute('data-consignor') || 'N/A';
+            document.getElementById('detailDestination').textContent = selectedOption.getAttribute('data-destination') || 'N/A';
+            document.getElementById('detailVehicle').textContent = selectedOption.getAttribute('data-vehicle') || 'N/A';
+            billDetails.style.display = 'block';
+        } else {
+            billDetails.style.display = 'none';
+        }
+    });
+    
+    if (billSelect.value) {
+        billSelect.dispatchEvent(new Event('change'));
+    }
+
+    // Set default delivery datetime to now
+    const now = new Date();
+    const datetimeLocal = now.toISOString().slice(0, 16);
+    document.getElementById('delivered_datetime').value = datetimeLocal;
+});
+</script>
+{% endblock %}

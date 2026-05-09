@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Users - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-people"></i> Users</h4>
+        <small class="text-muted">Manage tenant admins and tenant users.</small>
+    </div>
+    <a href="{{ url_for('create_user') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add User
+    </a>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td><strong>{{ user.full_name }}</strong></td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    {% if show_tenant_column %}<td>{{ user.tenant.name if user.tenant else '-' }}</td>{% endif %}
+                    <td>{{ role_labels.get(user.role, user.role) }}</td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if user.is_active else 'bg-secondary' }}">
+                            {{ 'Active' if user.is_active else 'Inactive' }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if user.role != 'superadmin' %}
+                        <a href="{{ url_for('edit_user', id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{{ url_for('reset_user_password', id=user.id) }}" class="btn btn-sm btn-outline-dark">
+                            <i class="bi bi-key"></i>
+                        </a>
+                        <form action="{{ url_for('toggle_user_status', id=user.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-warning">
+                                <i class="bi {{ 'bi-person-slash' if user.is_active else 'bi-person-check' }}"></i>
+                            </button>
+                        </form>
+                        {% if is_superadmin() and user.is_active %}
+                        <a href="{{ url_for('start_impersonation', user_id=user.id) }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-person-badge"></i>
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ 7 if show_tenant_column else 6 }}" class="text-center py-4 text-muted">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

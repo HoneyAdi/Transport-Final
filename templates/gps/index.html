@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}GPS Integration - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-broadcast-pin"></i> GPS Integration</h4>
+        <small class="text-muted">Register GPS devices and receive live pings through provider webhooks.</small>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Add GPS Device</h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Vehicle</label>
+                        <select name="vehicle_id" class="form-select" required>
+                            <option value="">Select Vehicle</option>
+                            {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.id }}">{{ vehicle.registration_number }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Device IMEI</label>
+                        <input name="device_imei" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Provider</label>
+                        <input name="provider" class="form-control" value="generic">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Webhook API Key</label>
+                        <input name="api_key" class="form-control" placeholder="Leave blank to auto-generate">
+                    </div>
+                    {% if has_permission('gps', 'edit') %}
+                    <button class="btn btn-primary">Add Device</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Registered Devices</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead><tr><th>Vehicle</th><th>IMEI</th><th>Provider</th><th>Webhook</th></tr></thead>
+                        <tbody>
+                            {% for device in devices %}
+                            <tr>
+                                <td>{{ device.vehicle.registration_number if device.vehicle else '-' }}</td>
+                                <td>{{ device.device_imei }}</td>
+                                <td>{{ device.provider }}</td>
+                                <td><code>{{ url_for('gps_webhook', api_key=device.api_key, _external=True) }}</code></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-muted text-center">No GPS devices registered.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Recent GPS Pings</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>Time</th><th>Vehicle</th><th>Trip</th><th>Location</th><th>Speed</th></tr></thead>
+                        <tbody>
+                            {% for ping in recent_pings %}
+                            <tr>
+                                <td>{{ ping.recorded_at.strftime('%Y-%m-%d %H:%M') if ping.recorded_at else '-' }}</td>
+                                <td>{{ ping.vehicle.registration_number if ping.vehicle else '-' }}</td>
+                                <td>{{ ping.trip.trip_number if ping.trip else '-' }}</td>
+                                <td>{{ ping.address or (ping.latitude ~ ', ' ~ ping.longitude) }}</td>
+                                <td>{{ ping.speed_kmph or '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-muted text-center">No GPS pings received yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

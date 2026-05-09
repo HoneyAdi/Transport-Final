@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Trip - {{ trip.trip_number }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8fafc; }
+        .driver-card { max-width: 760px; margin: 16px auto; border-radius: 12px; }
+        .form-control, .btn { min-height: 44px; }
+    </style>
+</head>
+<body>
+<main class="container">
+    <div class="card driver-card shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h3 class="mb-1">{{ trip.trip_number }}</h3>
+                    <div class="text-muted">{{ trip.origin or '-' }} to {{ trip.destination or '-' }}</div>
+                </div>
+                <span class="badge bg-primary">{{ trip.status.replace('_', ' ').title() }}</span>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <div class="text-muted small">Bilty</div>
+                    <strong>{{ trip.bilty.name if trip.bilty else '-' }}</strong>
+                </div>
+                <div class="col-6">
+                    <div class="text-muted small">Vehicle</div>
+                    <strong>{{ trip.vehicle.registration_number if trip.vehicle else '-' }}</strong>
+                </div>
+            </div>
+
+            <form method="POST" class="mb-4">
+                <input type="hidden" name="action" value="tracking">
+                <label class="form-label">Current Location</label>
+                <input type="text" name="current_location" class="form-control mb-3" value="{{ trip.current_location or '' }}" required>
+                <button type="submit" class="btn btn-primary w-100">Update Location</button>
+            </form>
+
+            <hr>
+
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="pod">
+                <h5 class="mb-3">Submit POD</h5>
+                <div class="mb-3">
+                    <label class="form-label">Delivered By</label>
+                    <input type="text" name="delivered_by" class="form-control" value="{{ trip.delivered_by or '' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Received By</label>
+                    <input type="text" name="received_by_name" class="form-control" value="{{ trip.received_by_name or '' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">POD Number</label>
+                    <input type="text" name="pod_number" class="form-control" value="{{ trip.pod_number or '' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">POD Photo/PDF</label>
+                    <input type="file" name="pod_file" class="form-control" accept="image/*,.pdf" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Remarks</label>
+                    <textarea name="delivery_remarks" class="form-control" rows="3">{{ trip.delivery_remarks or '' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Submit POD & Mark Delivered</button>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

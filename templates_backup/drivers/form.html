@@ -1,0 +1,685 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Create' }} Driver - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-person-vcard"></i> {{ 'Edit' if edit else 'Create' }} Driver</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST" id="driverForm" enctype="multipart/form-data">
+            {% include '_tenant_selector.html' %}
+
+            <!-- 1. Personal Information -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-personal">
+                    <h5 class="mb-0"><i class="bi bi-person"></i> 1. Personal Information</h5>
+                </div>
+                <div class="collapse show" id="section-personal">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Driver Code</label>
+                                    <input type="text" class="form-control" value="{{ driver.driver_code if edit else 'Auto-generated' }}" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" required
+                                           value="{{ driver.first_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name"
+                                           value="{{ driver.last_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="father_name" class="form-label">Father's Name</label>
+                                    <input type="text" class="form-control" id="father_name" name="father_name"
+                                           value="{{ driver.father_name if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                                           value="{{ driver.date_of_birth.strftime('%Y-%m-%d') if edit and driver.date_of_birth else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male" {{ 'selected' if edit and driver.gender == 'Male' else '' }}>Male</option>
+                                        <option value="Female" {{ 'selected' if edit and driver.gender == 'Female' else '' }}>Female</option>
+                                        <option value="Other" {{ 'selected' if edit and driver.gender == 'Other' else '' }}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="blood_group" class="form-label">Blood Group</label>
+                                    <select class="form-select" id="blood_group" name="blood_group">
+                                        <option value="">Select Blood Group</option>
+                                        <option value="A+" {{ 'selected' if edit and driver.blood_group == 'A+' else '' }}>A+</option>
+                                        <option value="A-" {{ 'selected' if edit and driver.blood_group == 'A-' else '' }}>A-</option>
+                                        <option value="B+" {{ 'selected' if edit and driver.blood_group == 'B+' else '' }}>B+</option>
+                                        <option value="B-" {{ 'selected' if edit and driver.blood_group == 'B-' else '' }}>B-</option>
+                                        <option value="AB+" {{ 'selected' if edit and driver.blood_group == 'AB+' else '' }}>AB+</option>
+                                        <option value="AB-" {{ 'selected' if edit and driver.blood_group == 'AB-' else '' }}>AB-</option>
+                                        <option value="O+" {{ 'selected' if edit and driver.blood_group == 'O+' else '' }}>O+</option>
+                                        <option value="O-" {{ 'selected' if edit and driver.blood_group == 'O-' else '' }}>O-</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="marital_status" class="form-label">Marital Status</label>
+                                    <select class="form-select" id="marital_status" name="marital_status">
+                                        <option value="">Select Status</option>
+                                        <option value="Single" {{ 'selected' if edit and driver.marital_status == 'Single' else '' }}>Single</option>
+                                        <option value="Married" {{ 'selected' if edit and driver.marital_status == 'Married' else '' }}>Married</option>
+                                        <option value="Divorced" {{ 'selected' if edit and driver.marital_status == 'Divorced' else '' }}>Divorced</option>
+                                        <option value="Widowed" {{ 'selected' if edit and driver.marital_status == 'Widowed' else '' }}>Widowed</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nationality" class="form-label">Nationality</label>
+                                    <input type="text" class="form-control" id="nationality" name="nationality"
+                                           value="{{ driver.nationality if edit else 'Indian' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="Active" {{ 'selected' if edit and driver.status == 'Active' else '' }}>Active</option>
+                                        <option value="On Leave" {{ 'selected' if edit and driver.status == 'On Leave' else '' }}>On Leave</option>
+                                        <option value="Suspended" {{ 'selected' if edit and driver.status == 'Suspended' else '' }}>Suspended</option>
+                                        <option value="Terminated" {{ 'selected' if edit and driver.status == 'Terminated' else '' }}>Terminated</option>
+                                        <option value="Resigned" {{ 'selected' if edit and driver.status == 'Resigned' else '' }}>Resigned</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Contact Information -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-contact">
+                    <h5 class="mb-0"><i class="bi bi-telephone"></i> 2. Contact Information</h5>
+                </div>
+                <div class="collapse show" id="section-contact">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="mobile_number" class="form-label">Mobile Number</label>
+                                    <input type="tel" class="form-control" id="mobile_number" name="mobile_number"
+                                           value="{{ driver.mobile_number if edit else '' }}" placeholder="10-digit mobile">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="alternate_mobile" class="form-label">Alternate Mobile</label>
+                                    <input type="tel" class="form-control" id="alternate_mobile" name="alternate_mobile"
+                                           value="{{ driver.alternate_mobile if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           value="{{ driver.email if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="emergency_contact_name" class="form-label">Emergency Contact Name</label>
+                                    <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name"
+                                           value="{{ driver.emergency_contact_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="emergency_contact_number" class="form-label">Emergency Contact Number</label>
+                                    <input type="tel" class="form-control" id="emergency_contact_number" name="emergency_contact_number"
+                                           value="{{ driver.emergency_contact_number if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="emergency_contact_relation" class="form-label">Relationship</label>
+                                    <input type="text" class="form-control" id="emergency_contact_relation" name="emergency_contact_relation"
+                                           value="{{ driver.emergency_contact_relation if edit else '' }}" placeholder="e.g., Father, Spouse">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Address Information -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-address">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt"></i> 3. Address Information</h5>
+                </div>
+                <div class="collapse show" id="section-address">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="address_line1" class="form-label">Address Line 1</label>
+                                    <input type="text" class="form-control" id="address_line1" name="address_line1"
+                                           value="{{ driver.address_line1 if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="address_line2" class="form-label">Address Line 2</label>
+                                    <input type="text" class="form-control" id="address_line2" name="address_line2"
+                                           value="{{ driver.address_line2 if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="city" class="form-label">City</label>
+                                    <input type="text" class="form-control" id="city" name="city"
+                                           value="{{ driver.city if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="state" class="form-label">State</label>
+                                    <input type="text" class="form-control" id="state" name="state"
+                                           value="{{ driver.state if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="pincode" class="form-label">Pincode</label>
+                                    <input type="text" class="form-control" id="pincode" name="pincode"
+                                           value="{{ driver.pincode if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="country" class="form-label">Country</label>
+                                    <input type="text" class="form-control" id="country" name="country"
+                                           value="{{ driver.country if edit else 'India' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Employment Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-employment">
+                    <h5 class="mb-0"><i class="bi bi-briefcase"></i> 4. Employment Details</h5>
+                </div>
+                <div class="collapse show" id="section-employment">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="employee_code" class="form-label">Employee Code</label>
+                                    <input type="text" class="form-control" id="employee_code" name="employee_code"
+                                           value="{{ driver.employee_code if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_of_joining" class="form-label">Date of Joining</label>
+                                    <input type="date" class="form-control" id="date_of_joining" name="date_of_joining"
+                                           value="{{ driver.date_of_joining.strftime('%Y-%m-%d') if edit and driver.date_of_joining else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="designation" class="form-label">Designation</label>
+                                    <input type="text" class="form-control" id="designation" name="designation"
+                                           value="{{ driver.designation if edit else 'Driver' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="department" class="form-label">Department</label>
+                                    <input type="text" class="form-control" id="department" name="department"
+                                           value="{{ driver.department if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="employment_type" class="form-label">Employment Type</label>
+                                    <select class="form-select" id="employment_type" name="employment_type">
+                                        <option value="Full-time" {{ 'selected' if edit and driver.employment_type == 'Full-time' else '' }}>Full-time</option>
+                                        <option value="Part-time" {{ 'selected' if edit and driver.employment_type == 'Part-time' else '' }}>Part-time</option>
+                                        <option value="Contract" {{ 'selected' if edit and driver.employment_type == 'Contract' else '' }}>Contract</option>
+                                        <option value="Temporary" {{ 'selected' if edit and driver.employment_type == 'Temporary' else '' }}>Temporary</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="monthly_salary" class="form-label">Monthly Salary (Rs.)</label>
+                                    <input type="number" class="form-control" id="monthly_salary" name="monthly_salary" step="0.01"
+                                           value="{{ driver.monthly_salary if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="daily_wage" class="form-label">Daily Wage (Rs.)</label>
+                                    <input type="number" class="form-control" id="daily_wage" name="daily_wage" step="0.01"
+                                           value="{{ driver.daily_wage if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="total_experience_years" class="form-label">Total Experience (Years)</label>
+                                    <input type="number" class="form-control" id="total_experience_years" name="total_experience_years"
+                                           value="{{ driver.total_experience_years if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Driving License Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-license">
+                    <h5 class="mb-0"><i class="bi bi-card-text"></i> 5. Driving License Details</h5>
+                </div>
+                <div class="collapse show" id="section-license">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="license_number" class="form-label">License Number</label>
+                                    <input type="text" class="form-control" id="license_number" name="license_number"
+                                           value="{{ driver.license_number if edit else '' }}" placeholder="e.g., MH02 2011 1234567">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="license_type" class="form-label">License Type</label>
+                                    <select class="form-select" id="license_type" name="license_type">
+                                        <option value="">Select Type</option>
+                                        <option value="LMV" {{ 'selected' if edit and driver.license_type == 'LMV' else '' }}>LMV (Light Motor Vehicle)</option>
+                                        <option value="HMV" {{ 'selected' if edit and driver.license_type == 'HMV' else '' }}>HMV (Heavy Motor Vehicle)</option>
+                                        <option value="HGMV" {{ 'selected' if edit and driver.license_type == 'HGMV' else '' }}>HGMV (Heavy Goods Motor Vehicle)</option>
+                                        <option value="HPMV" {{ 'selected' if edit and driver.license_type == 'HPMV' else '' }}>HPMV (Heavy Passenger Motor Vehicle)</option>
+                                        <option value="MCWG" {{ 'selected' if edit and driver.license_type == 'MCWG' else '' }}>MCWG (Motorcycle with Gear)</option>
+                                        <option value="MCWOG" {{ 'selected' if edit and driver.license_type == 'MCWOG' else '' }}>MCWOG (Motorcycle without Gear)</option>
+                                        <option value="TRANS" {{ 'selected' if edit and driver.license_type == 'TRANS' else '' }}>TRANS (Transport)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="license_issue_date" class="form-label">Issue Date</label>
+                                    <input type="date" class="form-control" id="license_issue_date" name="license_issue_date"
+                                           value="{{ driver.license_issue_date.strftime('%Y-%m-%d') if edit and driver.license_issue_date else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="license_expiry_date" class="form-label">Expiry Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="license_expiry_date" name="license_expiry_date" required
+                                           value="{{ driver.license_expiry_date.strftime('%Y-%m-%d') if edit and driver.license_expiry_date else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="license_issuing_authority" class="form-label">Issuing Authority (RTO)</label>
+                                    <input type="text" class="form-control" id="license_issuing_authority" name="license_issuing_authority"
+                                           value="{{ driver.license_issuing_authority if edit else '' }}" placeholder="e.g., MH02 Andheri RTO">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="license_state" class="form-label">State of Issue</label>
+                                    <input type="text" class="form-control" id="license_state" name="license_state"
+                                           value="{{ driver.license_state if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Bank Account Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-bank">
+                    <h5 class="mb-0"><i class="bi bi-bank"></i> 6. Bank Account Details</h5>
+                </div>
+                <div class="collapse show" id="section-bank">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="account_holder_name" class="form-label">Account Holder Name</label>
+                                    <input type="text" class="form-control" id="account_holder_name" name="account_holder_name"
+                                           value="{{ driver.account_holder_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="bank_name" class="form-label">Bank Name</label>
+                                    <input type="text" class="form-control" id="bank_name" name="bank_name"
+                                           value="{{ driver.bank_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="bank_branch" class="form-label">Branch</label>
+                                    <input type="text" class="form-control" id="bank_branch" name="bank_branch"
+                                           value="{{ driver.bank_branch if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="account_number" class="form-label">Account Number</label>
+                                    <input type="text" class="form-control" id="account_number" name="account_number"
+                                           value="{{ driver.account_number if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="ifsc_code" class="form-label">IFSC Code</label>
+                                    <input type="text" class="form-control" id="ifsc_code" name="ifsc_code"
+                                           value="{{ driver.ifsc_code if edit else '' }}" placeholder="e.g., SBIN0001234">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="account_type" class="form-label">Account Type</label>
+                                    <select class="form-select" id="account_type" name="account_type">
+                                        <option value="Savings" {{ 'selected' if edit and driver.account_type == 'Savings' else '' }}>Savings</option>
+                                        <option value="Current" {{ 'selected' if edit and driver.account_type == 'Current' else '' }}>Current</option>
+                                        <option value="Salary" {{ 'selected' if edit and driver.account_type == 'Salary' else '' }}>Salary</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="upi_id" class="form-label">UPI ID</label>
+                                    <input type="text" class="form-control" id="upi_id" name="upi_id"
+                                           value="{{ driver.upi_id if edit else '' }}" placeholder="name@upi">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Documents & Attachments -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-documents">
+                    <h5 class="mb-0"><i class="bi bi-paperclip"></i> 7. Documents & Attachments</h5>
+                </div>
+                <div class="collapse show" id="section-documents">
+                    <div class="p-3">
+                        <!-- Photo -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="photo" class="form-label">Profile Photo</label>
+                                    {% if edit and driver.photo_path %}
+                                    <div class="mb-2">
+                                        <img src="{{ driver.photo_path }}" alt="Current Photo" class="rounded" style="max-height: 100px; max-width: 100px;">
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="photo" name="photo" accept=".jpg,.jpeg,.png">
+                                    <div class="form-text">Upload JPG or PNG (Max 2MB)</div>
+                                    <input type="hidden" name="photo_path" value="{{ driver.photo_path if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- Aadhaar -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="aadhaar_number" class="form-label">Aadhaar Number</label>
+                                    <input type="text" class="form-control" id="aadhaar_number" name="aadhaar_number" maxlength="12"
+                                           value="{{ driver.aadhaar_number if edit else '' }}" placeholder="12 digit Aadhaar">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="aadhaar_attachment" class="form-label">Aadhaar Card Attachment</label>
+                                    {% if edit and driver.aadhaar_attachment_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ driver.aadhaar_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="aadhaar_attachment" name="aadhaar_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                    <input type="hidden" name="aadhaar_attachment_path" value="{{ driver.aadhaar_attachment_path if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PAN -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="pan_number" class="form-label">PAN Number</label>
+                                    <input type="text" class="form-control" id="pan_number" name="pan_number" maxlength="10"
+                                           value="{{ driver.pan_number if edit else '' }}" placeholder="ABCDE1234F">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="pan_attachment" class="form-label">PAN Card Attachment</label>
+                                    {% if edit and driver.pan_attachment_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ driver.pan_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="pan_attachment" name="pan_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                    <input type="hidden" name="pan_attachment_path" value="{{ driver.pan_attachment_path if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Driving License -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="driving_license_attachment" class="form-label">Driving License Attachment</label>
+                                    {% if edit and driver.driving_license_attachment_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ driver.driving_license_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="driving_license_attachment" name="driving_license_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                    <input type="hidden" name="driving_license_attachment_path" value="{{ driver.driving_license_attachment_path if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bank Document -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="bank_attachment" class="form-label">Bank Passbook/Cancelled Cheque Attachment</label>
+                                    {% if edit and driver.bank_attachment_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ driver.bank_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="bank_attachment" name="bank_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                    <input type="hidden" name="bank_attachment_path" value="{{ driver.bank_attachment_path if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Police Verification -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="police_verification" class="form-label">Police Verification Certificate</label>
+                                    {% if edit and driver.police_verification_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ driver.police_verification_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="police_verification" name="police_verification" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                    <input type="hidden" name="police_verification_path" value="{{ driver.police_verification_path if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Medical Certificate -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="medical_certificate" class="form-label">Medical Fitness Certificate</label>
+                                    {% if edit and driver.medical_certificate_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ driver.medical_certificate_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="medical_certificate" name="medical_certificate" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                    <input type="hidden" name="medical_certificate_path" value="{{ driver.medical_certificate_path if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. References -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-references">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> 8. References</h5>
+                </div>
+                <div class="collapse" id="section-references">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference1_name" class="form-label">Reference 1 - Name</label>
+                                    <input type="text" class="form-control" id="reference1_name" name="reference1_name"
+                                           value="{{ driver.reference1_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference1_contact" class="form-label">Reference 1 - Contact</label>
+                                    <input type="text" class="form-control" id="reference1_contact" name="reference1_contact"
+                                           value="{{ driver.reference1_contact if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference1_address" class="form-label">Reference 1 - Address</label>
+                                    <input type="text" class="form-control" id="reference1_address" name="reference1_address"
+                                           value="{{ driver.reference1_address if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference2_name" class="form-label">Reference 2 - Name</label>
+                                    <input type="text" class="form-control" id="reference2_name" name="reference2_name"
+                                           value="{{ driver.reference2_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference2_contact" class="form-label">Reference 2 - Contact</label>
+                                    <input type="text" class="form-control" id="reference2_contact" name="reference2_contact"
+                                           value="{{ driver.reference2_contact if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference2_address" class="form-label">Reference 2 - Address</label>
+                                    <input type="text" class="form-control" id="reference2_address" name="reference2_address"
+                                           value="{{ driver.reference2_address if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. Remarks -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-remarks">
+                    <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> 9. Remarks</h5>
+                </div>
+                <div class="collapse" id="section-remarks">
+                    <div class="p-3">
+                        <div class="mb-3">
+                            <label for="remarks" class="form-label">Additional Remarks</label>
+                            <textarea class="form-control" id="remarks" name="remarks" rows="4">{{ driver.remarks if edit else '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }} Driver
+                </button>
+                <a href="{{ url_for('drivers') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

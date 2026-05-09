@@ -1,0 +1,22 @@
+============================================================
+VENDOR MULTIPLE ADDRESSES MIGRATION
+============================================================
+
+[STEP 1] Creating vendor_addresses table...
+[OK] Table created or already exists
+
+[STEP 2] Adding vendor fields to expenses table...
+[OK] vendor_id already exists
+[OK] vendor_address_id already exists
+
+[STEP 3] Migrating existing vendor addresses...
+[OK] Migrated 0 vendor addresses
+
+============================================================
+MIGRATION COMPLETED SUCCESSFULLY!
+============================================================
+
+Summary:
+- vendor_addresses table: OK
+- Expense table updated: OK
+- Migrated 0 addresses: OK

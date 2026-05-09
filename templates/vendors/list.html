@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendors - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <h4 class="mb-0"><i class="bi bi-shop"></i> Vendors</h4>
+    <div class="d-flex gap-2">
+        {% if has_permission('vendors', 'view') %}
+        <a href="{{ url_for('export_vendors') }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export
+        </a>
+        {% endif %}
+        {% if has_permission('vendors', 'create') %}
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-upload"></i> Import
+        </button>
+        <a href="{{ url_for('create_vendor') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Vendor
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Import Modal -->
+{% if has_permission('vendors', 'create') %}
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Vendors from Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('import_vendors') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            File should have columns: Company Name, Contact Person, Mobile, Email, GSTIN, City, State, Status, Vendor Type
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Vendor Code</th>
+                    <th>Vendor Name</th>
+                    {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                    <th>Type</th>
+                    <th>GSTIN</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>KYC Status</th>
+                    <th>Login Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendor in vendors %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ vendor.vendor_code }}</strong></td>
+                    <td>
+                        {{ vendor.vendor_name }}
+                        {% if vendor.business_nature %}
+                        <br><small class="text-muted">{{ vendor.business_nature }}</small>
+                        {% endif %}
+                    </td>
+                    {% if show_tenant_column %}<td>{{ vendor.tenant.name if vendor.tenant else '-' }}</td>{% endif %}
+                    <td>{{ vendor.vendor_type or '-' }}</td>
+                    <td>{{ vendor.gstin or '-' }}</td>
+                    <td>
+                        {% if vendor.mobile %}{{ vendor.mobile }}{% endif %}
+                        {% if vendor.email %}<br><small>{{ vendor.email }}</small>{% endif %}
+                        {% if not vendor.mobile and not vendor.email %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if vendor.status == 'active' %}
+                        <span class="badge bg-success">Active</span>
+                        {% elif vendor.status == 'inactive' %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% elif vendor.status == 'suspended' %}
+                        <span class="badge bg-warning text-dark">Suspended</span>
+                        {% elif vendor.status == 'blacklisted' %}
+                        <span class="badge bg-danger">Blacklisted</span>
+                        {% else %}
+                        <span class="badge bg-light text-dark">{{ vendor.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if vendor.kyc_status == 'verified' %}
+                        <span class="badge bg-success">Verified</span>
+                        {% elif vendor.kyc_status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif vendor.kyc_status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                        <span class="badge bg-light text-dark">{{ vendor.kyc_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set vendor_users = vendor.vendor_users %}
+                        {% if vendor_users %}
+                            <span class="badge bg-info">{{ vendor_users|length }} Login{{ 's' if vendor_users|length > 1 else '' }}</span>
+                            {% for vu in vendor_users %}
+                                {% if vu.is_primary %}
+                                <br><small class="text-muted">Primary: {{ vu.user.full_name }}</small>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <span class="badge bg-secondary">No Login</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            {% if has_permission('vendors', 'edit') %}
+                            <a href="{{ url_for('edit_vendor', id=vendor.id) }}" class="btn btn-outline-primary" title="Edit Vendor">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+                            {% if has_permission('vendors', 'edit') %}
+                            <a href="{{ url_for('create_vendor_login', vendor_id=vendor.id) }}" class="btn btn-outline-success" title="Create Vendor Login">
+                                <i class="bi bi-person-plus"></i>
+                            </a>
+                            {% endif %}
+                            {% if has_permission('vendors', 'delete') %}
+                            <form action="{{ url_for('delete_vendor', id=vendor.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this vendor?')">
+                                <button type="submit" class="btn btn-outline-danger" title="Delete Vendor">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ 11 if show_tenant_column else 10 }}" class="text-center py-4 text-muted">
+                        No vendors found.{% if has_permission('vendors', 'create') %} <a href="{{ url_for('create_vendor') }}">Create one</a>.{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

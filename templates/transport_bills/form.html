@@ -1,0 +1,1823 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Create' }} Bilty - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-file-text"></i> {{ 'Edit' if edit else 'Create' }} Bilty</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST" id="billForm">
+            {% include '_tenant_selector.html' %}
+            
+            <!-- 1. GR Basic Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-basic">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> 1. GR Basic Details</h5>
+                </div>
+                <div class="collapse show" id="section-basic">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Bilty Number</label>
+                                    <input type="text" class="form-control" value="{{ bill.name if edit else 'Auto-generated' }}" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="gr_number" class="form-label">GR Number</label>
+                                    <input type="text" class="form-control" id="gr_number" name="gr_number" 
+                                           value="{{ bill.gr_number if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="gr_date" class="form-label">GR Date</label>
+                                    <input type="date" class="form-control" id="gr_date" name="gr_date" 
+                                           value="{{ bill.gr_date.strftime('%Y-%m-%d') if edit and bill.gr_date else today }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="branch_booking_location" class="form-label">Branch/Booking Location</label>
+                                    <input type="text" class="form-control" id="branch_booking_location" name="branch_booking_location" 
+                                           value="{{ bill.branch_booking_location if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="gr_type" class="form-label">GR Type</label>
+                                    <select class="form-select" id="gr_type" name="gr_type">
+                                        <option value="">Select Type</option>
+                                        <option value="local" {% if edit and bill.gr_type == 'local' %}selected{% endif %}>Local</option>
+                                        <option value="outstation" {% if edit and bill.gr_type == 'outstation' %}selected{% endif %}>Outstation</option>
+                                        <option value="ftl" {% if edit and bill.gr_type == 'ftl' %}selected{% endif %}>Full Truckload</option>
+                                        <option value="ptl" {% if edit and bill.gr_type == 'ptl' %}selected{% endif %}>Part Load</option>
+                                        <option value="parcel" {% if edit and bill.gr_type == 'parcel' %}selected{% endif %}>Parcel</option>
+                                        <option value="container" {% if edit and bill.gr_type == 'container' %}selected{% endif %}>Container</option>
+                                        <option value="inward" {% if edit and bill.gr_type == 'inward' %}selected{% endif %}>Inward</option>
+                                        <option value="outward" {% if edit and bill.gr_type == 'outward' %}selected{% endif %}>Outward</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="booking_mode" class="form-label">Booking Mode</label>
+                                    <select class="form-select" id="booking_mode" name="booking_mode">
+                                        <option value="road" {% if edit and bill.booking_mode == 'road' %}selected{% endif %}>Road</option>
+                                        <option value="rail" {% if edit and bill.booking_mode == 'rail' %}selected{% endif %}>Rail</option>
+                                        <option value="air" {% if edit and bill.booking_mode == 'air' %}selected{% endif %}>Air</option>
+                                        <option value="courier" {% if edit and bill.booking_mode == 'courier' %}selected{% endif %}>Courier</option>
+                                        <option value="sea" {% if edit and bill.booking_mode == 'sea' %}selected{% endif %}>Sea</option>
+                                        <option value="mixed" {% if edit and bill.booking_mode == 'mixed' %}selected{% endif %}>Mixed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <input type="text" class="form-control" id="status" name="status" value="booked" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="reference_number" class="form-label">Reference Number</label>
+                                    <input type="text" class="form-control" id="reference_number" name="reference_number" 
+                                           value="{{ bill.reference_number if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Vendor Selection -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-vendor">
+                    <h5 class="mb-0"><i class="bi bi-building"></i> 2. Vendor Selection</h5>
+                </div>
+                <div class="collapse show" id="section-vendor">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="vendor_id" class="form-label">Select Vendor <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="vendor_id" name="vendor_id" required>
+                                        <option value="">-- Select Vendor --</option>
+                                        {% for vendor in vendors %}
+                                        <option value="{{ vendor.id }}" 
+                                                data-gstin="{{ vendor.gstin or '' }}"
+                                                {% if edit and bill.vendor_id == vendor.id %}selected{% endif %}>
+                                            {{ vendor.vendor_name }} {% if vendor.gstin %}(GST: {{ vendor.gstin }}){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text text-muted">Select the vendor for this transport bill</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="vendor_address_id" class="form-label">Vendor Address <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="vendor_address_id" name="vendor_address_id" required disabled
+                                            data-selected-id="{{ bill.vendor_address_id if edit else '' }}">
+                                        <option value="">-- Select Vendor First --</option>
+                                    </select>
+                                    <div class="form-text text-muted">Select the appropriate address for this transaction</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Party / Customer Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-party">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> 3. Party / Customer Details</h5>
+                </div>
+                <div class="collapse show" id="section-party">
+                    <div class="p-3">
+                        <h6 class="text-primary border-bottom pb-2">Consignor (Sender)</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignor_name" class="form-label">Consignor Name</label>
+                                    <input type="text" class="form-control" id="consignor_name" name="consignor_name" 
+                                           value="{{ bill.consignor_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignor_gstin" class="form-label">Consignor GSTIN</label>
+                                    <input type="text" class="form-control" id="consignor_gstin" name="consignor_gstin" 
+                                           value="{{ bill.consignor_gstin if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignor_contact_person" class="form-label">Contact Person</label>
+                                    <input type="text" class="form-control" id="consignor_contact_person" name="consignor_contact_person" 
+                                           value="{{ bill.consignor_contact_person if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignor_address" class="form-label">Consignor Address</label>
+                                    <textarea class="form-control" id="consignor_address" name="consignor_address" rows="2">{{ bill.consignor_address if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="consignor_mobile" class="form-label">Mobile</label>
+                                    <input type="text" class="form-control" id="consignor_mobile" name="consignor_mobile" 
+                                           value="{{ bill.consignor_mobile if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="consignor_email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="consignor_email" name="consignor_email" 
+                                           value="{{ bill.consignor_email if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary border-bottom pb-2 mt-4">Consignee (Receiver)</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignee_name" class="form-label">Consignee Name</label>
+                                    <input type="text" class="form-control" id="consignee_name" name="consignee_name" 
+                                           value="{{ bill.consignee_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignee_gstin" class="form-label">Consignee GSTIN</label>
+                                    <input type="text" class="form-control" id="consignee_gstin" name="consignee_gstin" 
+                                           value="{{ bill.consignee_gstin if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignee_contact_person" class="form-label">Contact Person</label>
+                                    <input type="text" class="form-control" id="consignee_contact_person" name="consignee_contact_person" 
+                                           value="{{ bill.consignee_contact_person if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consignee_address" class="form-label">Consignee Address</label>
+                                    <textarea class="form-control" id="consignee_address" name="consignee_address" rows="2">{{ bill.consignee_address if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="consignee_mobile" class="form-label">Mobile</label>
+                                    <input type="text" class="form-control" id="consignee_mobile" name="consignee_mobile" 
+                                           value="{{ bill.consignee_mobile if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="consignee_email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="consignee_email" name="consignee_email" 
+                                           value="{{ bill.consignee_email if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="bill_to_party" class="form-label">Bill To Party</label>
+                                    <input type="text" class="form-control" id="bill_to_party" name="bill_to_party" 
+                                           value="{{ bill.bill_to_party if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="ship_to_party" class="form-label">Ship To Party</label>
+                                    <input type="text" class="form-control" id="ship_to_party" name="ship_to_party" 
+                                           value="{{ bill.ship_to_party if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Pickup Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-pickup">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt"></i> 3. Booking / Pickup Details</h5>
+                </div>
+                <div class="collapse" id="section-pickup">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="pickup_point" class="form-label">Pickup Point</label>
+                                    <input type="text" class="form-control" id="pickup_point" name="pickup_point" 
+                                           value="{{ bill.pickup_point if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="pickup_date" class="form-label">Pickup Date</label>
+                                    <input type="date" class="form-control" id="pickup_date" name="pickup_date" 
+                                           value="{{ bill.pickup_date.strftime('%Y-%m-%d') if edit and bill.pickup_date else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="pickup_branch" class="form-label">Pickup Branch/Hub</label>
+                                    <input type="text" class="form-control" id="pickup_branch" name="pickup_branch" 
+                                           value="{{ bill.pickup_branch if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="loaded_by" class="form-label">Loaded By</label>
+                                    <input type="text" class="form-control" id="loaded_by" name="loaded_by" 
+                                           value="{{ bill.loaded_by if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="loading_type" class="form-label">Loading Type</label>
+                                    <select class="form-select" id="loading_type" name="loading_type">
+                                        <option value="">Select</option>
+                                        <option value="manual" {% if edit and bill.loading_type == 'manual' %}selected{% endif %}>Manual</option>
+                                        <option value="forklift" {% if edit and bill.loading_type == 'forklift' %}selected{% endif %}>Forklift</option>
+                                        <option value="crane" {% if edit and bill.loading_type == 'crane' %}selected{% endif %}>Crane</option>
+                                        <option value="labor_assisted" {% if edit and bill.loading_type == 'labor_assisted' %}selected{% endif %}>Labor-assisted</option>
+                                        <option value="machine_loaded" {% if edit and bill.loading_type == 'machine_loaded' %}selected{% endif %}>Machine-loaded</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="pickup_city" class="form-label">Pickup City</label>
+                                    <input type="text" class="form-control" id="pickup_city" name="pickup_city" 
+                                           value="{{ bill.pickup_city if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="pickup_state" class="form-label">Pickup State</label>
+                                    <input type="text" class="form-control" id="pickup_state" name="pickup_state" 
+                                           value="{{ bill.pickup_state if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="pickup_pincode" class="form-label">Pickup PIN Code</label>
+                                    <input type="text" class="form-control" id="pickup_pincode" name="pickup_pincode" 
+                                           value="{{ bill.pickup_pincode if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="pickup_remarks" class="form-label">Pickup Remarks</label>
+                                    <textarea class="form-control" id="pickup_remarks" name="pickup_remarks" rows="2">{{ bill.pickup_remarks if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Delivery Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-delivery">
+                    <h5 class="mb-0"><i class="bi bi-box-seam"></i> 4. Delivery / Destination Details</h5>
+                </div>
+                <div class="collapse" id="section-delivery">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="delivery_location" class="form-label">Delivery Location</label>
+                                    <input type="text" class="form-control" id="delivery_location" name="delivery_location" 
+                                           value="{{ bill.delivery_location if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
+                                    <input type="date" class="form-control" id="expected_delivery_date" name="expected_delivery_date" 
+                                           value="{{ bill.expected_delivery_date.strftime('%Y-%m-%d') if edit and bill.expected_delivery_date else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="delivery_type_id" class="form-label">Delivery Type</label>
+                                    <select class="form-select" id="delivery_type_id" name="delivery_type_id">
+                                        <option value="">Select Delivery Type</option>
+                                        {% for dt in delivery_types %}
+                                        <option value="{{ dt.id }}" {% if edit and bill.delivery_type_id == dt.id %}selected{% endif %}>
+                                            {{ dt.delivery_type }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="delivery_city" class="form-label">Delivery City</label>
+                                    <input type="text" class="form-control" id="delivery_city" name="delivery_city" 
+                                           value="{{ bill.delivery_city if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="delivery_state" class="form-label">Delivery State</label>
+                                    <input type="text" class="form-control" id="delivery_state" name="delivery_state" 
+                                           value="{{ bill.delivery_state if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="delivery_pincode" class="form-label">Delivery PIN Code</label>
+                                    <input type="text" class="form-control" id="delivery_pincode" name="delivery_pincode" 
+                                           value="{{ bill.delivery_pincode if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="unloading_point" class="form-label">Unloading Point</label>
+                                    <input type="text" class="form-control" id="unloading_point" name="unloading_point" 
+                                           value="{{ bill.unloading_point if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="delivery_remarks" class="form-label">Delivery Remarks</label>
+                                    <textarea class="form-control" id="delivery_remarks" name="delivery_remarks" rows="2">{{ bill.delivery_remarks if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Vehicle Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-vehicle">
+                    <h5 class="mb-0"><i class="bi bi-truck"></i> 5. Vehicle / Transport Details</h5>
+                </div>
+                <div class="collapse" id="section-vehicle">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="vehicle_id" class="form-label">Vehicle <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                                        <option value="">Select Vehicle</option>
+                                        {% for veh in vehicles %}
+                                        <option value="{{ veh.id }}"
+                                                data-registration-number="{{ veh.registration_number }}"
+                                                data-vehicle-type="{{ veh.vehicle_type or '' }}"
+                                                data-model="{{ veh.model or '' }}"
+                                                data-make="{{ veh.make or '' }}"
+                                                data-year="{{ veh.year or '' }}"
+                                                data-color="{{ veh.color or '' }}"
+                                                data-load-capacity="{{ veh.load_capacity_kg or '' }}"
+                                                data-truck-size="{{ veh.truck_size or '' }}"
+                                                data-owner-name="{{ veh.owner_name or '' }}"
+                                                data-owner-contact="{{ veh.owner_contact or '' }}"
+                                                data-driver-name="{{ veh.driver.first_name + ' ' + (veh.driver.last_name or '') if veh.driver else '' }}"
+                                                data-driver-mobile="{{ veh.driver.mobile_number if veh.driver else '' }}"
+                                                data-driver-license="{{ veh.driver.license_number if veh.driver else '' }}"
+                                                {% if edit and bill.vehicle_id == veh.id %}selected{% endif %}>
+                                            {{ veh.registration_number }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="vehicle_number" class="form-label">Vehicle Number</label>
+                                    <input type="text" class="form-control" id="vehicle_number" name="vehicle_number" 
+                                           value="{{ bill.vehicle_number if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="vehicle_type" class="form-label">Vehicle Type</label>
+                                    <select class="form-select" id="vehicle_type" name="vehicle_type">
+                                        <option value="">Select</option>
+                                        <option value="truck" {% if edit and bill.vehicle_type == 'truck' %}selected{% endif %}>Truck</option>
+                                        <option value="tempo" {% if edit and bill.vehicle_type == 'tempo' %}selected{% endif %}>Tempo</option>
+                                        <option value="trailer" {% if edit and bill.vehicle_type == 'trailer' %}selected{% endif %}>Trailer</option>
+                                        <option value="container" {% if edit and bill.vehicle_type == 'container' %}selected{% endif %}>Container</option>
+                                        <option value="pickup_van" {% if edit and bill.vehicle_type == 'pickup_van' %}selected{% endif %}>Pickup Van</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="vehicle_ownership" class="form-label">Vehicle Ownership</label>
+                                    <select class="form-select" id="vehicle_ownership" name="vehicle_ownership">
+                                        <option value="owned" {% if edit and bill.vehicle_ownership == 'owned' %}selected{% endif %}>Owned</option>
+                                        <option value="attached" {% if edit and bill.vehicle_ownership == 'attached' %}selected{% endif %}>Attached</option>
+                                        <option value="market" {% if edit and bill.vehicle_ownership == 'market' %}selected{% endif %}>Market</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="vehicle_capacity" class="form-label">Vehicle Capacity</label>
+                                    <input type="text" class="form-control" id="vehicle_capacity" name="vehicle_capacity" 
+                                           value="{{ bill.vehicle_capacity if edit else '' }}" placeholder="e.g., 10 MT, 32ft">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="trip_number" class="form-label">Trip Number</label>
+                                    <input type="text" class="form-control" id="trip_number" name="trip_number" 
+                                           value="{{ bill.trip_number if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="route_name" class="form-label">Route Name</label>
+                                    <input type="text" class="form-control" id="route_name" name="route_name" 
+                                           value="{{ bill.route_name if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="driver_id" class="form-label">Driver <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="driver_id" name="driver_id" required>
+                                        <option value="">Select Driver</option>
+                                        {% for driver in drivers %}
+                                        <option value="{{ driver.id }}"
+                                                data-driver-name="{{ driver.first_name + ' ' + (driver.last_name or '') }}"
+                                                data-driver-mobile="{{ driver.mobile_number or '' }}"
+                                                data-driver-license="{{ driver.license_number or '' }}"
+                                                {% if edit and bill.driver_name == (driver.first_name + ' ' + (driver.last_name or '')) %}selected{% endif %}>
+                                            {{ driver.first_name }} {{ driver.last_name or '' }} ({{ driver.mobile_number or 'No Mobile' }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="driver_name" class="form-label">Driver Name</label>
+                                    <input type="text" class="form-control" id="driver_name" name="driver_name" readonly
+                                           value="{{ bill.driver_name if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="driver_mobile" class="form-label">Driver Mobile</label>
+                                    <input type="text" class="form-control" id="driver_mobile" name="driver_mobile" readonly
+                                           value="{{ bill.driver_mobile if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="driver_license" class="form-label">Driver License</label>
+                                    <input type="text" class="form-control" id="driver_license" name="driver_license" readonly
+                                           value="{{ bill.driver_license if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="helper_name" class="form-label">Helper/Cleaner Name</label>
+                                    <input type="text" class="form-control" id="helper_name" name="helper_name" 
+                                           value="{{ bill.helper_name if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Material Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-material">
+                    <h5 class="mb-0"><i class="bi bi-box"></i> 6. Material / Shipment Details</h5>
+                </div>
+                <div class="collapse" id="section-material">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="article_description" class="form-label">Article/Item Description</label>
+                                    <textarea class="form-control" id="article_description" name="article_description" rows="2">{{ bill.article_description if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="package_type" class="form-label">Package Type</label>
+                                    <select class="form-select" id="package_type" name="package_type">
+                                        <option value="">Select</option>
+                                        <option value="box" {% if edit and bill.package_type == 'box' %}selected{% endif %}>Box</option>
+                                        <option value="bag" {% if edit and bill.package_type == 'bag' %}selected{% endif %}>Bag</option>
+                                        <option value="carton" {% if edit and bill.package_type == 'carton' %}selected{% endif %}>Carton</option>
+                                        <option value="drum" {% if edit and bill.package_type == 'drum' %}selected{% endif %}>Drum</option>
+                                        <option value="pallet" {% if edit and bill.package_type == 'pallet' %}selected{% endif %}>Pallet</option>
+                                        <option value="bundle" {% if edit and bill.package_type == 'bundle' %}selected{% endif %}>Bundle</option>
+                                        <option value="sack" {% if edit and bill.package_type == 'sack' %}selected{% endif %}>Sack</option>
+                                        <option value="loose" {% if edit and bill.package_type == 'loose' %}selected{% endif %}>Loose</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="number_of_packages" class="form-label">Number of Packages</label>
+                                    <input type="number" class="form-control" id="number_of_packages" name="number_of_packages" 
+                                           value="{{ bill.number_of_packages if edit else '0' }}" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="packing_mode" class="form-label">Packing Mode</label>
+                                    <select class="form-select" id="packing_mode" name="packing_mode">
+                                        <option value="">Select</option>
+                                        <option value="loose" {% if edit and bill.packing_mode == 'loose' %}selected{% endif %}>Loose</option>
+                                        <option value="packed" {% if edit and bill.packing_mode == 'packed' %}selected{% endif %}>Packed</option>
+                                        <option value="palletized" {% if edit and bill.packing_mode == 'palletized' %}selected{% endif %}>Palletized</option>
+                                        <option value="shrink_wrapped" {% if edit and bill.packing_mode == 'shrink_wrapped' %}selected{% endif %}>Shrink-wrapped</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="actual_weight" class="form-label">Actual Weight (kg)</label>
+                                    <input type="number" class="form-control" id="actual_weight" name="actual_weight" step="0.001"
+                                           value="{{ bill.actual_weight if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="charged_weight" class="form-label">Charged Weight (kg)</label>
+                                    <input type="number" class="form-control" id="charged_weight" name="charged_weight" step="0.001"
+                                           value="{{ bill.charged_weight if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="volume_cbm" class="form-label">Volume (CBM)</label>
+                                    <input type="number" class="form-control" id="volume_cbm" name="volume_cbm" step="0.001"
+                                           value="{{ bill.volume_cbm if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="material_value" class="form-label">Material Value (₹)</label>
+                                    <input type="number" class="form-control" id="material_value" name="material_value" step="0.01"
+                                           value="{{ bill.material_value if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="declared_value" class="form-label">Declared Value (₹)</label>
+                                    <input type="number" class="form-control" id="declared_value" name="declared_value" step="0.01"
+                                           value="{{ bill.declared_value if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="dimensions" class="form-label">Dimensions (LxWxH)</label>
+                                    <input type="text" class="form-control" id="dimensions" name="dimensions" 
+                                           value="{{ bill.dimensions if edit else '' }}" placeholder="e.g., 100x50x30 cm">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="hsn_code" class="form-label">HSN/SAC Code</label>
+                                    <input type="text" class="form-control" id="hsn_code" name="hsn_code" 
+                                           value="{{ bill.hsn_code if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="goods_category" class="form-label">Goods Category</label>
+                                    <select class="form-select" id="goods_category" name="goods_category">
+                                        <option value="">Select</option>
+                                        <option value="general" {% if edit and bill.goods_category == 'general' %}selected{% endif %}>General Cargo</option>
+                                        <option value="fragile" {% if edit and bill.goods_category == 'fragile' %}selected{% endif %}>Fragile</option>
+                                        <option value="hazardous" {% if edit and bill.goods_category == 'hazardous' %}selected{% endif %}>Hazardous</option>
+                                        <option value="perishable" {% if edit and bill.goods_category == 'perishable' %}selected{% endif %}>Perishable</option>
+                                        <option value="machinery" {% if edit and bill.goods_category == 'machinery' %}selected{% endif %}>Machinery</option>
+                                        <option value="electronics" {% if edit and bill.goods_category == 'electronics' %}selected{% endif %}>Electronics</option>
+                                        <option value="textile" {% if edit and bill.goods_category == 'textile' %}selected{% endif %}>Textile</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nature_of_goods" class="form-label">Nature of Goods</label>
+                                    <select class="form-select" id="nature_of_goods" name="nature_of_goods">
+                                        <option value="">Select</option>
+                                        <option value="breakable" {% if edit and bill.nature_of_goods == 'breakable' %}selected{% endif %}>Breakable</option>
+                                        <option value="liquid" {% if edit and bill.nature_of_goods == 'liquid' %}selected{% endif %}>Liquid</option>
+                                        <option value="dry" {% if edit and bill.nature_of_goods == 'dry' %}selected{% endif %}>Dry</option>
+                                        <option value="frozen" {% if edit and bill.nature_of_goods == 'frozen' %}selected{% endif %}>Frozen</option>
+                                        <option value="sensitive" {% if edit and bill.nature_of_goods == 'sensitive' %}selected{% endif %}>Sensitive</option>
+                                        <option value="urgent" {% if edit and bill.nature_of_goods == 'urgent' %}selected{% endif %}>Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="insurance_required" name="insurance_required" 
+                                               {% if edit and bill.insurance_required %}checked{% endif %}>
+                                        <label class="form-check-label" for="insurance_required">Insurance Required</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="insurance_value" class="form-label">Insurance Value (₹)</label>
+                                    <input type="number" class="form-control" id="insurance_value" name="insurance_value" step="0.01"
+                                           value="{{ bill.insurance_value if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="handling_instructions" class="form-label">Handling Instructions</label>
+                                    <textarea class="form-control" id="handling_instructions" name="handling_instructions" rows="2" placeholder="e.g., Fragile, Top Load Only, Keep Dry, No Stacking">{{ bill.handling_instructions if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="goods_remarks" class="form-label">Special Remarks</label>
+                                    <textarea class="form-control" id="goods_remarks" name="goods_remarks" rows="2">{{ bill.goods_remarks if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Freight / Charges -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-freight">
+                    <h5 class="mb-0"><i class="bi bi-currency-rupee"></i> 7. Freight / Charge Heads</h5>
+                </div>
+                <div class="collapse" id="section-freight">
+                    <div class="p-3">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="ratelist_id" class="form-label">Select Rate List (Optional)</label>
+                                    <select class="form-select" id="ratelist_id" name="ratelist_id">
+                                        <option value="">-- Select Rate List to Auto-fill Charges --</option>
+                                        {% for ratelist in ratelists %}
+                                        <option value="{{ ratelist.id }}"
+                                                data-basic-freight="{{ ratelist.basic_freight or 0 }}"
+                                                data-loading-charge="{{ ratelist.loading_charge or 0 }}"
+                                                data-unloading-charge="{{ ratelist.unloading_charge or 0 }}"
+                                                data-door-pickup-charge="{{ ratelist.door_pickup_charge or 0 }}"
+                                                data-door-delivery-charge="{{ ratelist.door_delivery_charge or 0 }}"
+                                                data-hamali-charge="{{ ratelist.hamali_charge or 0 }}"
+                                                data-detention-charge="{{ ratelist.detention_charge or 0 }}"
+                                                data-waiting-charge="{{ ratelist.waiting_charge or 0 }}"
+                                                data-halting-charge="{{ ratelist.halting_charge or 0 }}"
+                                                data-toll-charge="{{ ratelist.toll_charge or 0 }}"
+                                                data-border-charge="{{ ratelist.border_charge or 0 }}"
+                                                data-fuel-surcharge="{{ ratelist.fuel_surcharge or 0 }}"
+                                                data-packing-charge="{{ ratelist.packing_charge or 0 }}"
+                                                data-weighment-charge="{{ ratelist.weighment_charge or 0 }}"
+                                                data-permit-charge="{{ ratelist.permit_charge or 0 }}"
+                                                data-driver-allowance="{{ ratelist.driver_allowance or 0 }}"
+                                                data-insurance-charge="{{ ratelist.insurance_charge or 0 }}"
+                                                data-other-charges="{{ ratelist.other_charges or 0 }}"
+                                                data-igst-rate="{{ ratelist.igst_rate or 0 }}"
+                                                data-cgst-rate="{{ ratelist.cgst_rate or 0 }}"
+                                                data-sgst-rate="{{ ratelist.sgst_rate or 0 }}"
+                                                data-rate-14ft="{{ ratelist.rate_14ft or 0 }}"
+                                                data-rate-17ft="{{ ratelist.rate_17ft or 0 }}"
+                                                data-rate-t5-1109="{{ ratelist.rate_t5_1109 or 0 }}"
+                                                data-rate-19ft="{{ ratelist.rate_19ft or 0 }}"
+                                                data-rate-22ft="{{ ratelist.rate_22ft or 0 }}"
+                                                data-rate-32ft="{{ ratelist.rate_32ft or 0 }}"
+                                                data-party-id="{{ ratelist.party_id or '' }}"
+                                                data-effective-date="{{ ratelist.effective_date.strftime('%Y-%m-%d') if ratelist.effective_date else '' }}">
+                                            {{ ratelist.name }} {% if ratelist.party %}({{ ratelist.party.vendor_name }}){% endif %} {% if ratelist.origin and ratelist.destination %}({{ ratelist.origin }} to {{ ratelist.destination }}){% endif %} {% if ratelist.effective_date %}[{{ ratelist.effective_date.strftime('%Y-%m-%d') }}]{% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text text-muted">Select a rate list to automatically populate freight charges</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="basic_freight" class="form-label">Basic Freight (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="basic_freight" name="basic_freight" step="0.01"
+                                           value="{{ bill.basic_freight if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="loading_charge" class="form-label">Loading Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="loading_charge" name="loading_charge" step="0.01"
+                                           value="{{ bill.loading_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="unloading_charge" class="form-label">Unloading Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="unloading_charge" name="unloading_charge" step="0.01"
+                                           value="{{ bill.unloading_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="hamali_charge" class="form-label">Hamali/Labor Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="hamali_charge" name="hamali_charge" step="0.01"
+                                           value="{{ bill.hamali_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="door_pickup_charge" class="form-label">Door Pickup (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="door_pickup_charge" name="door_pickup_charge" step="0.01"
+                                           value="{{ bill.door_pickup_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="door_delivery_charge" class="form-label">Door Delivery (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="door_delivery_charge" name="door_delivery_charge" step="0.01"
+                                           value="{{ bill.door_delivery_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="detention_charge" class="form-label">Detention Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="detention_charge" name="detention_charge" step="0.01"
+                                           value="{{ bill.detention_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="waiting_charge" class="form-label">Waiting Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="waiting_charge" name="waiting_charge" step="0.01"
+                                           value="{{ bill.waiting_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="halting_charge" class="form-label">Halting Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="halting_charge" name="halting_charge" step="0.01"
+                                           value="{{ bill.halting_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="toll_charge" class="form-label">Toll Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="toll_charge" name="toll_charge" step="0.01"
+                                           value="{{ bill.toll_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="border_charge" class="form-label">Border/Octroi Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="border_charge" name="border_charge" step="0.01"
+                                           value="{{ bill.border_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="fuel_surcharge" class="form-label">Fuel Surcharge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="fuel_surcharge" name="fuel_surcharge" step="0.01"
+                                           value="{{ bill.fuel_surcharge if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="packing_charge" class="form-label">Packing Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="packing_charge" name="packing_charge" step="0.01"
+                                           value="{{ bill.packing_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="weighment_charge" class="form-label">Weighment Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="weighment_charge" name="weighment_charge" step="0.01"
+                                           value="{{ bill.weighment_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="permit_charge" class="form-label">Permit Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="permit_charge" name="permit_charge" step="0.01"
+                                           value="{{ bill.permit_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="driver_allowance" class="form-label">Driver Allowance (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="driver_allowance" name="driver_allowance" step="0.01"
+                                           value="{{ bill.driver_allowance if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="insurance_charge" class="form-label">Insurance Charge (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="insurance_charge" name="insurance_charge" step="0.01"
+                                           value="{{ bill.insurance_charge if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="other_charges" class="form-label">Other Charges (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="other_charges" name="other_charges" step="0.01"
+                                           value="{{ bill.other_charges if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="discount" class="form-label">Discount/Rebate (₹)</label>
+                                    <input type="number" class="form-control freight-input" id="discount" name="discount" step="0.01"
+                                           value="{{ bill.discount if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="net_freight" class="form-label fw-bold">Net Freight (₹)</label>
+                                    <input type="number" class="form-control fw-bold bg-light" id="net_freight" name="net_freight" step="0.01" readonly
+                                           value="{{ bill.net_freight if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Tax / Statutory -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-tax">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> 8. Tax / Statutory Details</h5>
+                </div>
+                <div class="collapse" id="section-tax">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="gst_applicable" name="gst_applicable" 
+                                               {% if edit and bill.gst_applicable %}checked{% endif %} checked>
+                                        <label class="form-check-label" for="gst_applicable">GST Applicable</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="igst_rate" class="form-label">IGST Rate (%)</label>
+                                    <input type="number" class="form-control tax-input" id="igst_rate" name="igst_rate" step="0.01"
+                                           value="{{ bill.igst_rate if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="cgst_rate" class="form-label">CGST Rate (%)</label>
+                                    <input type="number" class="form-control tax-input" id="cgst_rate" name="cgst_rate" step="0.01"
+                                           value="{{ bill.cgst_rate if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="sgst_rate" class="form-label">SGST Rate (%)</label>
+                                    <input type="number" class="form-control tax-input" id="sgst_rate" name="sgst_rate" step="0.01"
+                                           value="{{ bill.sgst_rate if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="taxable_amount" class="form-label">Taxable Amount (₹)</label>
+                                    <input type="number" class="form-control" id="taxable_amount" name="taxable_amount" step="0.01" readonly
+                                           value="{{ bill.taxable_amount if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="gst_amount" class="form-label">GST Amount (₹)</label>
+                                    <input type="number" class="form-control" id="gst_amount" name="gst_amount" step="0.01" readonly
+                                           value="{{ bill.gst_amount if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="eway_bill_number" class="form-label">E-Way Bill Number</label>
+                                    <input type="text" class="form-control" id="eway_bill_number" name="eway_bill_number" 
+                                           value="{{ bill.eway_bill_number if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="eway_bill_date" class="form-label">E-Way Bill Date</label>
+                                    <input type="date" class="form-control" id="eway_bill_date" name="eway_bill_date" 
+                                           value="{{ bill.eway_bill_date.strftime('%Y-%m-%d') if edit and bill.eway_bill_date else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="eway_bill_validity" class="form-label">E-Way Bill Validity</label>
+                                    <input type="date" class="form-control" id="eway_bill_validity" name="eway_bill_validity" 
+                                           value="{{ bill.eway_bill_validity.strftime('%Y-%m-%d') if edit and bill.eway_bill_validity else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="invoice_number" class="form-label">Invoice Number</label>
+                                    <input type="text" class="form-control" id="invoice_number" name="invoice_number" 
+                                           value="{{ bill.invoice_number if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. Payment Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-payment">
+                    <h5 class="mb-0"><i class="bi bi-credit-card"></i> 9. Payment / Collection Details</h5>
+                </div>
+                <div class="collapse" id="section-payment">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="freight_payment_mode" class="form-label">Payment Mode</label>
+                                    <select class="form-select" id="freight_payment_mode" name="freight_payment_mode">
+                                        <option value="paid" {% if edit and bill.freight_payment_mode == 'paid' %}selected{% endif %}>Paid</option>
+                                        <option value="to_pay" {% if edit and bill.freight_payment_mode == 'to_pay' %}selected{% endif %} selected>To Pay</option>
+                                        <option value="billing" {% if edit and bill.freight_payment_mode == 'billing' %}selected{% endif %}>Billing</option>
+                                        <option value="fob" {% if edit and bill.freight_payment_mode == 'fob' %}selected{% endif %}>FOB</option>
+                                        <option value="advance" {% if edit and bill.freight_payment_mode == 'advance' %}selected{% endif %}>Advance</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="freight_collected_from" class="form-label">Collected From</label>
+                                    <select class="form-select" id="freight_collected_from" name="freight_collected_from">
+                                        <option value="">Select</option>
+                                        <option value="sender" {% if edit and bill.freight_collected_from == 'sender' %}selected{% endif %}>Sender</option>
+                                        <option value="receiver" {% if edit and bill.freight_collected_from == 'receiver' %}selected{% endif %}>Receiver</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="advance_amount" class="form-label">Advance Amount (₹)</label>
+                                    <input type="number" class="form-control" id="advance_amount" name="advance_amount" step="0.01"
+                                           value="{{ bill.advance_amount if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="balance_amount" class="form-label">Balance Amount (₹)</label>
+                                    <input type="number" class="form-control" id="balance_amount" name="balance_amount" step="0.01"
+                                           value="{{ bill.balance_amount if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="freight_due" class="form-label">Freight Due (₹)</label>
+                                    <input type="number" class="form-control" id="freight_due" name="freight_due" step="0.01"
+                                           value="{{ bill.freight_due if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="paid_amount" class="form-label">Paid Amount (₹)</label>
+                                    <input type="number" class="form-control" id="paid_amount" name="paid_amount" step="0.01"
+                                           value="{{ bill.paid_amount if edit else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="payment_status" class="form-label">Payment Status</label>
+                                    <input type="text" class="form-control" id="payment_status" name="payment_status" readonly
+                                           value="{{ bill.payment_status if edit else 'pending' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="receipt_number" class="form-label">Receipt/Voucher Number</label>
+                                    <input type="text" class="form-control" id="receipt_number" name="receipt_number" 
+                                           value="{{ bill.receipt_number if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. Transit Details -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-transit">
+                    <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> 10. Dispatch / Transit Details</h5>
+                </div>
+                <div class="collapse" id="section-transit">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="dispatch_from_branch" class="form-label">Dispatch From Branch</label>
+                                    <input type="text" class="form-control" id="dispatch_from_branch" name="dispatch_from_branch" 
+                                           value="{{ bill.dispatch_from_branch if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="reached_hub" class="form-label">Reached Hub/Transit Point</label>
+                                    <input type="text" class="form-control" id="reached_hub" name="reached_hub" 
+                                           value="{{ bill.reached_hub if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="transshipment_hub" class="form-label">Transshipment Hub</label>
+                                    <input type="text" class="form-control" id="transshipment_hub" name="transshipment_hub" 
+                                           value="{{ bill.transshipment_hub if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="intermediate_vehicle_number" class="form-label">Intermediate Vehicle</label>
+                                    <input type="text" class="form-control" id="intermediate_vehicle_number" name="intermediate_vehicle_number" 
+                                           value="{{ bill.intermediate_vehicle_number if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="transshipment_required" name="transshipment_required" 
+                                               {% if edit and bill.transshipment_required %}checked{% endif %}>
+                                        <label class="form-check-label" for="transshipment_required">Transshipment Required</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="expected_transit_time" class="form-label">Expected Transit Time</label>
+                                    <input type="text" class="form-control" id="expected_transit_time" name="expected_transit_time" 
+                                           value="{{ bill.expected_transit_time if edit else '' }}" placeholder="e.g., 24 hours">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="actual_transit_time" class="form-label">Actual Transit Time</label>
+                                    <input type="text" class="form-control" id="actual_transit_time" name="actual_transit_time" 
+                                           value="{{ bill.actual_transit_time if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="tracking_number" class="form-label">Tracking Number</label>
+                                    <input type="text" class="form-control" id="tracking_number" name="tracking_number" 
+                                           value="{{ bill.tracking_number if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="delay_reason" class="form-label">Delay Reason</label>
+                                    <textarea class="form-control" id="delay_reason" name="delay_reason" rows="2">{{ bill.delay_reason if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. Risk/Compliance -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-risk">
+                    <h5 class="mb-0"><i class="bi bi-shield-exclamation"></i> 11. Risk / Compliance Details</h5>
+                </div>
+                <div class="collapse" id="section-risk">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="hazardous_material" name="hazardous_material" 
+                                               {% if edit and bill.hazardous_material %}checked{% endif %}>
+                                        <label class="form-check-label" for="hazardous_material">Hazardous Material</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="temperature_controlled" name="temperature_controlled" 
+                                               {% if edit and bill.temperature_controlled %}checked{% endif %}>
+                                        <label class="form-check-label" for="temperature_controlled">Temperature Controlled</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="shortage_damage_flag" name="shortage_damage_flag" 
+                                               {% if edit and bill.shortage_damage_flag %}checked{% endif %}>
+                                        <label class="form-check-label" for="shortage_damage_flag">Shortage/Damage</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="customer_complaint_number" class="form-label">Complaint Number</label>
+                                    <input type="text" class="form-control" id="customer_complaint_number" name="customer_complaint_number" 
+                                           value="{{ bill.customer_complaint_number if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="claim_amount" class="form-label">Claim Amount (₹)</label>
+                                    <input type="number" class="form-control" id="claim_amount" name="claim_amount" step="0.01"
+                                           value="{{ bill.claim_amount if edit else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="gps_link" class="form-label">GPS/Tracking Link</label>
+                                    <input type="url" class="form-control" id="gps_link" name="gps_link" 
+                                           value="{{ bill.gps_link if edit else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="permit_details" class="form-label">Permit Details</label>
+                                    <textarea class="form-control" id="permit_details" name="permit_details" rows="2">{{ bill.permit_details if edit else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 14. Attachments -->
+            <div class="section-card mb-4">
+                <div class="section-header bg-light p-2 rounded" data-bs-toggle="collapse" data-bs-target="#section-attachments">
+                    <h5 class="mb-0"><i class="bi bi-paperclip"></i> 14. Attachments</h5>
+                </div>
+                <div class="collapse show" id="section-attachments">
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="bilty_attachment_1" class="form-label">Bilty Attachment 1</label>
+                                    {% if edit and bill.bilty_attachment_1_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ bill.bilty_attachment_1_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current File
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="bilty_attachment_1" name="bilty_attachment_1" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="bilty_attachment_2" class="form-label">Bilty Attachment 2</label>
+                                    {% if edit and bill.bilty_attachment_2_path %}
+                                    <div class="mb-2">
+                                        <a href="{{ bill.bilty_attachment_2_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-file-earmark"></i> View Current File
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="bilty_attachment_2" name="bilty_attachment_2" accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="form-text">Upload PDF, JPG, or PNG (Max 5MB)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legacy fields preserved for compatibility -->
+            <input type="hidden" id="challan_number" name="challan_number" value="{{ bill.challan_number if edit else '' }}">
+            <input type="hidden" id="party_information" name="party_information" value="{{ bill.party_information if edit else '' }}">
+            <input type="hidden" id="location_id" name="location_id" value="{{ bill.location_id if edit else '' }}">
+            <input type="hidden" id="rate" name="rate" value="{{ bill.rate if edit else '0' }}">
+
+            {% if edit %}
+            <div class="alert alert-warning mb-4">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Version Control:</strong> Editing this bilty will create a new version. The original will remain unchanged.
+            </div>
+            <div class="mb-4">
+                <label for="modification_reason" class="form-label fw-bold">Modification Reason <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="modification_reason" name="modification_reason" rows="3" required placeholder="Please explain why this bilty is being modified..."></textarea>
+                <div class="form-text">This reason will be stored with the new version for audit purposes.</div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }} Bilty
+                </button>
+                {% if edit %}
+                <a href="{{ url_for('print_bilty', id=bill.id) }}" class="btn btn-outline-secondary" target="_blank">
+                    <i class="bi bi-printer"></i> Print
+                </a>
+                {% endif %}
+                <a href="{{ url_for('transport_bills') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+console.log('Transport bill form script loaded');
+
+// Vendor address loading logic (inlined to avoid loading issues)
+function loadVendorAddresses(vendorId, selectedAddressId = null) {
+    const addressSelect = document.getElementById('vendor_address_id');
+    if (!addressSelect) {
+        console.log('vendor_address_id element not found');
+        return;
+    }
+    
+    addressSelect.innerHTML = '<option value="">-- Select Address --</option>';
+    
+    if (!vendorId) {
+        addressSelect.disabled = true;
+        return;
+    }
+    
+    console.log('Loading addresses for vendor:', vendorId);
+    
+    fetch(`/api/vendors/${vendorId}/addresses`)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(addresses => {
+            console.log('Addresses loaded:', addresses);
+            if (addresses && addresses.length > 0) {
+                addresses.forEach(addr => {
+                    const option = document.createElement('option');
+                    option.value = addr.id;
+                    const primaryLabel = addr.is_primary ? ' [PRIMARY]' : '';
+                    option.textContent = `${addr.address_type}${primaryLabel}: ${addr.full_address}`;
+                    if (selectedAddressId && addr.id === parseInt(selectedAddressId)) {
+                        option.selected = true;
+                    }
+                    addressSelect.appendChild(option);
+                });
+                addressSelect.disabled = false;
+                console.log('Address dropdown populated with', addresses.length, 'addresses');
+            } else {
+                addressSelect.innerHTML = '<option value="">No addresses found</option>';
+                addressSelect.disabled = true;
+                console.log('No addresses found for vendor');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading vendor addresses:', error);
+            addressSelect.innerHTML = '<option value="">Error loading addresses</option>';
+            addressSelect.disabled = true;
+        });
+}
+
+// Initialize vendor address dropdown
+function initVendorAddress() {
+    const vendorSelect = document.getElementById('vendor_id');
+    const addressSelect = document.getElementById('vendor_address_id');
+    
+    console.log('Initializing vendor address dropdown');
+    console.log('vendorSelect:', vendorSelect);
+    console.log('addressSelect:', addressSelect);
+    
+    if (vendorSelect && addressSelect) {
+        const selectedAddressId = addressSelect.dataset.selectedId || null;
+        console.log('selectedAddressId:', selectedAddressId);
+        
+        if (vendorSelect.value) {
+            console.log('Loading initial addresses for vendor:', vendorSelect.value);
+            loadVendorAddresses(vendorSelect.value, selectedAddressId);
+        } else {
+            addressSelect.disabled = true;
+        }
+        
+        vendorSelect.addEventListener('change', function() {
+            console.log('Vendor changed to:', this.value);
+            loadVendorAddresses(this.value);
+        });
+        
+        // Add event listener to update consignor address when vendor address is selected
+        addressSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const fullAddress = selectedOption.textContent.split(': ')[1] || '';
+            if (fullAddress && fullAddress !== '-- Select Address --') {
+                document.getElementById('consignor_address').value = fullAddress;
+            }
+        });
+    } else {
+        console.log('Vendor select or address select not found');
+    }
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initVendorAddress);
+} else {
+    initVendorAddress();
+}
+
+// Define calculation functions globally
+function calculatePaymentStatus() {
+    const paidAmount = parseFloat(document.getElementById('paid_amount')?.value) || 0;
+    const freightDue = parseFloat(document.getElementById('freight_due')?.value) || 0;
+    const paymentStatusSelect = document.getElementById('payment_status');
+    const balanceAmountInput = document.getElementById('balance_amount');
+    
+    // Calculate balance: Freight Due - Paid Amount
+    const balance = freightDue - paidAmount;
+    if (balanceAmountInput) {
+        balanceAmountInput.value = balance.toFixed(2);
+    }
+    
+    // Update payment status based on comparison
+    if (paymentStatusSelect) {
+        if (paidAmount >= freightDue) {
+            paymentStatusSelect.value = 'paid';
+        } else if (paidAmount > 0) {
+            paymentStatusSelect.value = 'partial';
+        } else {
+            paymentStatusSelect.value = 'pending';
+        }
+    }
+}
+
+function calculateFreightDue() {
+    const netFreight = parseFloat(document.getElementById('net_freight')?.value) || 0;
+    const gstAmount = parseFloat(document.getElementById('gst_amount')?.value) || 0;
+    const freightDueInput = document.getElementById('freight_due');
+    
+    if (freightDueInput) {
+        const freightDue = netFreight + gstAmount;
+        freightDueInput.value = freightDue.toFixed(2);
+        // Recalculate payment status and balance
+        calculatePaymentStatus();
+    }
+}
+
+function calculateNetFreight() {
+    const fields = [
+        'basic_freight', 'loading_charge', 'unloading_charge', 'door_pickup_charge',
+        'door_delivery_charge', 'hamali_charge', 'detention_charge', 'waiting_charge',
+        'halting_charge', 'toll_charge', 'border_charge', 'fuel_surcharge',
+        'packing_charge', 'weighment_charge', 'permit_charge', 'driver_allowance',
+        'insurance_charge', 'other_charges'
+    ];
+    
+    let total = 0;
+    fields.forEach(field => {
+        const value = parseFloat(document.getElementById(field)?.value) || 0;
+        total += value;
+    });
+    
+    const discount = parseFloat(document.getElementById('discount')?.value) || 0;
+    total -= discount;
+    
+    const netFreightInput = document.getElementById('net_freight');
+    if (netFreightInput) {
+        netFreightInput.value = total.toFixed(2);
+    }
+    
+    // Update taxable amount
+    const taxableAmountInput = document.getElementById('taxable_amount');
+    if (taxableAmountInput) {
+        taxableAmountInput.value = total.toFixed(2);
+    }
+    
+    calculateGST();
+}
+
+function calculateGST() {
+    const taxableAmount = parseFloat(document.getElementById('taxable_amount')?.value) || 0;
+    const igstRate = parseFloat(document.getElementById('igst_rate')?.value) || 0;
+    const cgstRate = parseFloat(document.getElementById('cgst_rate')?.value) || 0;
+    const sgstRate = parseFloat(document.getElementById('sgst_rate')?.value) || 0;
+    
+    const gstAmount = (taxableAmount * (igstRate + cgstRate + sgstRate) / 100).toFixed(2);
+    
+    const gstAmountInput = document.getElementById('gst_amount');
+    if (gstAmountInput) {
+        gstAmountInput.value = gstAmount;
+    }
+    
+    // Trigger freight due calculation after GST is updated
+    calculateFreightDue();
+}
+
+// Auto-populate consignor fields when vendor is selected
+document.addEventListener('DOMContentLoaded', function() {
+    const vendorSelect = document.getElementById('vendor_id');
+    
+    if (vendorSelect) {
+        vendorSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const gstin = selectedOption.getAttribute('data-gstin');
+            
+            console.log('Vendor selected:', this.value, gstin);
+            
+            // Populate consignor fields from vendor data
+            const vendorName = selectedOption.text.split(' (GST:')[0].trim();
+            document.getElementById('consignor_name').value = vendorName;
+            document.getElementById('consignor_gstin').value = gstin || '';
+            
+            // Load vendor address and populate consignor address
+            const vendorId = this.value;
+            if (vendorId) {
+                fetch(`/api/vendors/${vendorId}/addresses`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(addresses => {
+                        console.log('Addresses loaded for consignor:', addresses);
+                        if (addresses && addresses.length > 0) {
+                            const primaryAddr = addresses.find(a => a.is_primary) || addresses[0];
+                            const fullAddress = primaryAddr.address_line1;
+                            if (primaryAddr.address_line2) {
+                                fullAddress += ', ' + primaryAddr.address_line2;
+                            }
+                            fullAddress += ', ' + primaryAddr.city + ', ' + primaryAddr.state + ' - ' + primaryAddr.pincode;
+                            
+                            document.getElementById('consignor_address').value = fullAddress;
+                            document.getElementById('consignor_mobile').value = primaryAddr.phone || '';
+                            document.getElementById('consignor_email').value = primaryAddr.email || '';
+                            document.getElementById('consignor_contact_person').value = primaryAddr.contact_person || '';
+                            
+                            console.log('Consignor fields populated');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading vendor address:', error);
+                    });
+            }
+        });
+        
+        // Also populate consignor fields when vendor address is selected
+        const vendorAddressSelect = document.getElementById('vendor_address_id');
+        if (vendorAddressSelect) {
+            vendorAddressSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (this.value && selectedOption.index > 0) {
+                    // Get the address from the option text or fetch it
+                    const addressText = selectedOption.textContent;
+                    console.log('Vendor address selected:', addressText);
+                    // The address is already in the format "Type: address"
+                    // Extract the address part
+                    const addressParts = addressText.split(': ');
+                    if (addressParts.length > 1) {
+                        document.getElementById('consignor_address').value = addressParts[1];
+                    }
+                }
+            });
+        }
+    }
+    
+    // Auto-populate bill_to_party from consignor_name
+    const consignorNameInput = document.getElementById('consignor_name');
+    const billToPartyInput = document.getElementById('bill_to_party');
+    if (consignorNameInput && billToPartyInput) {
+        consignorNameInput.addEventListener('change', function() {
+            billToPartyInput.value = this.value;
+        });
+        consignorNameInput.addEventListener('input', function() {
+            billToPartyInput.value = this.value;
+        });
+    }
+    
+    // Auto-populate ship_to_party from consignee_name
+    const consigneeNameInput = document.getElementById('consignee_name');
+    const shipToPartyInput = document.getElementById('ship_to_party');
+    if (consigneeNameInput && shipToPartyInput) {
+        consigneeNameInput.addEventListener('change', function() {
+            shipToPartyInput.value = this.value;
+        });
+        consigneeNameInput.addEventListener('input', function() {
+            shipToPartyInput.value = this.value;
+        });
+    }
+    
+    // Auto-populate vehicle fields when vehicle is selected
+    const vehicleSelect = document.getElementById('vehicle_id');
+    if (vehicleSelect) {
+        vehicleSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const vehicleNumber = selectedOption.getAttribute('data-registration-number');
+            const vehicleType = selectedOption.getAttribute('data-vehicle-type');
+            const vehicleModel = selectedOption.getAttribute('data-model');
+            const vehicleMake = selectedOption.getAttribute('data-make');
+            const vehicleLoadCapacity = selectedOption.getAttribute('data-load-capacity');
+            const vehicleTruckSize = selectedOption.getAttribute('data-truck-size');
+            const vehicleOwnerName = selectedOption.getAttribute('data-owner-name');
+            const vehicleOwnerContact = selectedOption.getAttribute('data-owner-contact');
+            const driverName = selectedOption.getAttribute('data-driver-name');
+            const driverMobile = selectedOption.getAttribute('data-driver-mobile');
+            const driverLicense = selectedOption.getAttribute('data-driver-license');
+            
+            console.log('Vehicle selected:', vehicleNumber);
+            
+            // Populate vehicle fields that exist in the form
+            const vehicleNumberField = document.getElementById('vehicle_number');
+            if (vehicleNumberField) vehicleNumberField.value = vehicleNumber || '';
+            
+            const vehicleTypeField = document.getElementById('vehicle_type');
+            if (vehicleTypeField) vehicleTypeField.value = vehicleType || '';
+            
+            const vehicleCapacityField = document.getElementById('vehicle_capacity');
+            if (vehicleCapacityField) {
+                // Combine make, model, load capacity and truck size for capacity field
+                let capacityValue = '';
+                if (vehicleMake) capacityValue += vehicleMake;
+                if (vehicleModel) capacityValue += (capacityValue ? ' ' : '') + vehicleModel;
+                if (vehicleLoadCapacity) capacityValue += (capacityValue ? ' - ' : '') + vehicleLoadCapacity + ' kg';
+                if (vehicleTruckSize) capacityValue += (capacityValue ? ' - ' : '') + vehicleTruckSize;
+                vehicleCapacityField.value = capacityValue;
+            }
+            
+            // Populate driver fields if available
+            const driverNameField = document.getElementById('driver_name');
+            const driverMobileField = document.getElementById('driver_mobile');
+            const driverLicenseField = document.getElementById('driver_license');
+            
+            if (driverNameField && driverName) driverNameField.value = driverName;
+            if (driverMobileField && driverMobile) driverMobileField.value = driverMobile;
+            if (driverLicenseField && driverLicense) driverLicenseField.value = driverLicense;
+            
+            console.log('Vehicle details populated:', {
+                number: vehicleNumber,
+                type: vehicleType,
+                capacity: capacityValue,
+                driver: driverName
+            });
+        });
+    }
+    
+    // Auto-populate driver fields when driver is selected
+    const driverSelect = document.getElementById('driver_id');
+    if (driverSelect) {
+        driverSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const driverName = selectedOption.getAttribute('data-driver-name');
+            const driverMobile = selectedOption.getAttribute('data-driver-mobile');
+            const driverLicense = selectedOption.getAttribute('data-driver-license');
+            
+            // Populate driver fields
+            document.getElementById('driver_name').value = driverName || '';
+            document.getElementById('driver_mobile').value = driverMobile || '';
+            document.getElementById('driver_license').value = driverLicense || '';
+        });
+    }
+    
+    // Auto-populate freight charges when ratelist is selected
+    const ratelistSelect = document.getElementById('ratelist_id');
+    if (ratelistSelect) {
+        ratelistSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            console.log('Rate list selected:', this.value);
+            
+            // Get all charge fields from the selected ratelist
+            const charges = [
+                'basic_freight', 'loading_charge', 'unloading_charge', 'door_pickup_charge',
+                'door_delivery_charge', 'hamali_charge', 'detention_charge', 'waiting_charge',
+                'halting_charge', 'toll_charge', 'border_charge', 'fuel_surcharge',
+                'packing_charge', 'weighment_charge', 'permit_charge', 'driver_allowance',
+                'insurance_charge', 'other_charges'
+            ];
+            
+            charges.forEach(charge => {
+                const value = selectedOption.getAttribute(`data-${charge.replace('_', '-')}`);
+                if (value && value !== '0') {
+                    const field = document.getElementById(charge);
+                    if (field) {
+                        field.value = value;
+                        console.log(`Set ${charge} to ${value}`);
+                    }
+                }
+            });
+            
+            // Update GST rates
+            const igstRate = selectedOption.getAttribute('data-igst-rate');
+            const cgstRate = selectedOption.getAttribute('data-cgst-rate');
+            const sgstRate = selectedOption.getAttribute('data-sgst-rate');
+            
+            if (igstRate && igstRate !== '0') {
+                document.getElementById('igst_rate').value = igstRate;
+                console.log(`Set igst_rate to ${igstRate}`);
+            }
+            if (cgstRate && cgstRate !== '0') {
+                document.getElementById('cgst_rate').value = cgstRate;
+                console.log(`Set cgst_rate to ${cgstRate}`);
+            }
+            if (sgstRate && sgstRate !== '0') {
+                document.getElementById('sgst_rate').value = sgstRate;
+                console.log(`Set sgst_rate to ${sgstRate}`);
+            }
+            
+            // Auto-populate vehicle-specific rate based on selected vehicle
+            const vehicleSelect = document.getElementById('vehicle_id');
+            if (vehicleSelect) {
+                const vehicleType = vehicleSelect.options[vehicleSelect.selectedIndex].text.toLowerCase();
+                let vehicleRate = 0;
+                
+                if (vehicleType.includes('14ft') || vehicleType.includes('14 ft')) {
+                    vehicleRate = selectedOption.getAttribute('data-rate-14ft');
+                } else if (vehicleType.includes('17ft') || vehicleType.includes('17 ft')) {
+                    vehicleRate = selectedOption.getAttribute('data-rate-17ft');
+                } else if (vehicleType.includes('t5-1109') || vehicleType.includes('t5 1109')) {
+                    vehicleRate = selectedOption.getAttribute('data-rate-t5-1109');
+                } else if (vehicleType.includes('19ft') || vehicleType.includes('19 ft')) {
+                    vehicleRate = selectedOption.getAttribute('data-rate-19ft');
+                } else if (vehicleType.includes('22ft') || vehicleType.includes('22 ft')) {
+                    vehicleRate = selectedOption.getAttribute('data-rate-22ft');
+                } else if (vehicleType.includes('32ft') || vehicleType.includes('32 ft')) {
+                    vehicleRate = selectedOption.getAttribute('data-rate-32ft');
+                }
+                
+                if (vehicleRate && vehicleRate !== '0') {
+                    const basicFreightField = document.getElementById('basic_freight');
+                    if (basicFreightField) {
+                        basicFreightField.value = vehicleRate;
+                        console.log(`Set basic_freight to ${vehicleRate} based on vehicle type`);
+                    }
+                }
+            }
+            
+            // Recalculate net freight and GST
+            calculateNetFreight();
+            console.log('Rate list charges populated and recalculated');
+        });
+    }
+    
+    // Add event listeners for freight input changes
+    document.querySelectorAll('.freight-input').forEach(input => {
+        input.addEventListener('change', calculateNetFreight);
+        input.addEventListener('input', calculateNetFreight);
+    });
+    
+    // Add event listeners for tax input changes
+    document.querySelectorAll('.tax-input').forEach(input => {
+        input.addEventListener('change', calculateGST);
+        input.addEventListener('input', calculateGST);
+    });
+    
+    // Add event listeners for discount field
+    const discountInput = document.getElementById('discount');
+    if (discountInput) {
+        discountInput.addEventListener('change', calculateNetFreight);
+        discountInput.addEventListener('input', calculateNetFreight);
+    }
+    
+    // Add event listeners for payment calculation
+    const paidAmountInput = document.getElementById('paid_amount');
+    const freightDueInput = document.getElementById('freight_due');
+    const netFreightInput = document.getElementById('net_freight');
+    const gstAmountInput = document.getElementById('gst_amount');
+    const advanceAmountInput = document.getElementById('advance_amount');
+    
+    if (paidAmountInput) {
+        paidAmountInput.addEventListener('change', calculatePaymentStatus);
+        paidAmountInput.addEventListener('input', calculatePaymentStatus);
+    }
+    
+    if (freightDueInput) {
+        freightDueInput.addEventListener('change', calculatePaymentStatus);
+        freightDueInput.addEventListener('input', calculatePaymentStatus);
+    }
+    
+    if (netFreightInput) {
+        netFreightInput.addEventListener('change', calculateFreightDue);
+        netFreightInput.addEventListener('input', calculateFreightDue);
+    }
+    
+    if (gstAmountInput) {
+        gstAmountInput.addEventListener('change', calculateFreightDue);
+        gstAmountInput.addEventListener('input', calculateFreightDue);
+    }
+    
+    if (advanceAmountInput) {
+        advanceAmountInput.addEventListener('change', calculatePaymentStatus);
+        advanceAmountInput.addEventListener('input', calculatePaymentStatus);
+    }
+    
+    // Initialize calculations on page load
+    setTimeout(() => {
+        calculateNetFreight();
+        console.log('Payment calculations initialized');
+    }, 100);
+});
+</script>
+{% endblock %}

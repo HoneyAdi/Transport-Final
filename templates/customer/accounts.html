@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Portal Accounts - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-person-badge"></i> Customer Portal Accounts</h4>
+        <small class="text-muted">Create logins for customers to view shipments and billing history.</small>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body p-4">
+                <h5 class="mb-3">New Customer Login</h5>
+                <form method="POST" action="{{ url_for('create_customer_account') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Vendor/Customer</label>
+                        <select name="vendor_id" class="form-select">
+                            <option value="">No linked vendor</option>
+                            {% for vendor in vendors %}
+                            <option value="{{ vendor.id }}">{{ vendor.vendor_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input name="full_name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Temporary Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button class="btn btn-primary">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead><tr><th>Name</th><th>Email</th><th>Vendor</th><th>Status</th><th>Last Login</th></tr></thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        <tr>
+                            <td>{{ account.full_name }}</td>
+                            <td>{{ account.email }}</td>
+                            <td>{{ account.vendor.vendor_name if account.vendor else '-' }}</td>
+                            <td><span class="badge bg-{{ 'success' if account.is_active else 'secondary' }}">{{ 'Active' if account.is_active else 'Inactive' }}</span></td>
+                            <td>{{ account.last_login_at.strftime('%Y-%m-%d %H:%M') if account.last_login_at else '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-muted text-center">No customer portal accounts yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Amendment Requests - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-clipboard-check"></i> Pending Amendment Requests</h4>
+        <small class="text-muted">Review and approve/reject profile change requests</small>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+{% if requests %}
+<div class="row g-4">
+    {% for request in requests %}
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="bi bi-person"></i> {{ request.user.full_name }}
+                        <small class="text-muted">({{ request.user.email }})</small>
+                    </h5>
+                    <small class="text-muted">Requested on: {{ request.created_at.strftime('%Y-%m-%d %H:%M') if request.created_at else '-' }}</small>
+                </div>
+                <span class="badge {{ 'bg-warning' if request.change_type == 'major' else 'bg-info' }}">
+                    {{ request.change_type|title }} Change
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Field Changes</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Old Value</th>
+                                    <th>New Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set changes = request.field_changes|from_json %}
+                                {% for field, values in changes.items() %}
+                                <tr>
+                                    <td><strong>{{ field.replace('_', ' ').title() }}</strong></td>
+                                    <td>{{ values.old or '-' }}</td>
+                                    <td class="text-primary">{{ values.new }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Reason</h6>
+                        <div class="alert alert-light">
+                            {{ request.reason }}
+                        </div>
+                        
+                        <h6 class="mb-3 mt-4">Actions</h6>
+                        <form method="POST" action="{{ url_for('approve_amendment', id=request.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to approve this amendment request?')">
+                                <i class="bi bi-check-circle"></i> Approve
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ request.id }}">
+                            <i class="bi bi-x-circle"></i> Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div class="modal fade" id="rejectModal{{ request.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reject Amendment Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('reject_amendment', id=request.id) }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="rejection_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="4" 
+                                      placeholder="Please explain why this request is being rejected..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Reject Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-clipboard-check" style="font-size: 64px; color: var(--text-secondary);"></i>
+        <h5 class="mt-3">No Pending Requests</h5>
+        <p class="text-muted">There are no amendment requests waiting for approval.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

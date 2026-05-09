@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Add' }} Rate List - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-currency-dollar"></i> {{ 'Edit' if edit else 'Add' }} Rate List</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% include '_tenant_selector.html' %}
+            
+            <!-- Basic Information -->
+            <h6 class="mb-3 fw-bold">Basic Information</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Rate List Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ ratelist.name if edit else '' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="party_id" class="form-label">Party (Vendor)</label>
+                        <select class="form-select" id="party_id" name="party_id">
+                            <option value="">-- Select Party --</option>
+                            {% for vendor in vendors %}
+                            <option value="{{ vendor.id }}" {% if ratelist and ratelist.party_id == vendor.id %}selected{% endif %}>
+                                {{ vendor.vendor_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="origin" class="form-label">Origin</label>
+                        <input type="text" class="form-control" id="origin" name="origin" 
+                               value="{{ ratelist.origin if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="destination" class="form-label">Destination</label>
+                        <input type="text" class="form-control" id="destination" name="destination" 
+                               value="{{ ratelist.destination if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="effective_date" class="form-label">Effective Date</label>
+                        <input type="date" class="form-control" id="effective_date" name="effective_date" 
+                               value="{{ ratelist.effective_date.strftime('%Y-%m-%d') if ratelist and ratelist.effective_date else today.strftime('%Y-%m-%d') }}">
+                        <div class="form-text">Date when this rate list becomes effective</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="2">{{ ratelist.description if edit else '' }}</textarea>
+            </div>
+
+            <!-- Vehicle-Specific Rates -->
+            <h6 class="mb-3 mt-4 fw-bold">Vehicle-Specific Rates</h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="rate_14ft" class="form-label">14 FT Rate (₹)</label>
+                        <input type="number" class="form-control" id="rate_14ft" name="rate_14ft" step="0.01" 
+                               value="{{ ratelist.rate_14ft if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="rate_17ft" class="form-label">17 FT Rate (₹)</label>
+                        <input type="number" class="form-control" id="rate_17ft" name="rate_17ft" step="0.01" 
+                               value="{{ ratelist.rate_17ft if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="rate_t5_1109" class="form-label">T5-1109 Rate (₹)</label>
+                        <input type="number" class="form-control" id="rate_t5_1109" name="rate_t5_1109" step="0.01" 
+                               value="{{ ratelist.rate_t5_1109 if edit else '' }}">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="rate_19ft" class="form-label">19 FT Rate (₹)</label>
+                        <input type="number" class="form-control" id="rate_19ft" name="rate_19ft" step="0.01" 
+                               value="{{ ratelist.rate_19ft if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="rate_22ft" class="form-label">22 FT Rate (₹)</label>
+                        <input type="number" class="form-control" id="rate_22ft" name="rate_22ft" step="0.01" 
+                               value="{{ ratelist.rate_22ft if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="rate_32ft" class="form-label">32 FT Rate (₹)</label>
+                        <input type="number" class="form-control" id="rate_32ft" name="rate_32ft" step="0.01" 
+                               value="{{ ratelist.rate_32ft if edit else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Charges -->
+            <h6 class="mb-3 mt-4 fw-bold">Other Charges</h6>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="basic_freight" class="form-label">Basic Freight (₹)</label>
+                        <input type="number" class="form-control" id="basic_freight" name="basic_freight" step="0.01" 
+                               value="{{ ratelist.basic_freight if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="loading_charge" class="form-label">Loading Charge (₹)</label>
+                        <input type="number" class="form-control" id="loading_charge" name="loading_charge" step="0.01" 
+                               value="{{ ratelist.loading_charge if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="unloading_charge" class="form-label">Unloading Charge (₹)</label>
+                        <input type="number" class="form-control" id="unloading_charge" name="unloading_charge" step="0.01" 
+                               value="{{ ratelist.unloading_charge if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="hamali_charge" class="form-label">Hamali Charge (₹)</label>
+                        <input type="number" class="form-control" id="hamali_charge" name="hamali_charge" step="0.01" 
+                               value="{{ ratelist.hamali_charge if edit else '' }}">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="door_pickup_charge" class="form-label">Door Pickup (₹)</label>
+                        <input type="number" class="form-control" id="door_pickup_charge" name="door_pickup_charge" step="0.01" 
+                               value="{{ ratelist.door_pickup_charge if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="door_delivery_charge" class="form-label">Door Delivery (₹)</label>
+                        <input type="number" class="form-control" id="door_delivery_charge" name="door_delivery_charge" step="0.01" 
+                               value="{{ ratelist.door_delivery_charge if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="detention_charge" class="form-label">Detention (₹)</label>
+                        <input type="number" class="form-control" id="detention_charge" name="detention_charge" step="0.01" 
+                               value="{{ ratelist.detention_charge if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="waiting_charge" class="form-label">Waiting (₹)</label>
+                        <input type="number" class="form-control" id="waiting_charge" name="waiting_charge" step="0.01" 
+                               value="{{ ratelist.waiting_charge if edit else '' }}">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="toll_charge" class="form-label">Toll (₹)</label>
+                        <input type="number" class="form-control" id="toll_charge" name="toll_charge" step="0.01" 
+                               value="{{ ratelist.toll_charge if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="fuel_surcharge" class="form-label">Fuel Surcharge (₹)</label>
+                        <input type="number" class="form-control" id="fuel_surcharge" name="fuel_surcharge" step="0.01" 
+                               value="{{ ratelist.fuel_surcharge if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="driver_allowance" class="form-label">Driver Allowance (₹)</label>
+                        <input type="number" class="form-control" id="driver_allowance" name="driver_allowance" step="0.01" 
+                               value="{{ ratelist.driver_allowance if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="other_charges" class="form-label">Other Charges (₹)</label>
+                        <input type="number" class="form-control" id="other_charges" name="other_charges" step="0.01" 
+                               value="{{ ratelist.other_charges if edit else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- GST Rates -->
+            <h6 class="mb-3 mt-4 fw-bold">GST Rates (%)</h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="igst_rate" class="form-label">IGST Rate (%)</label>
+                        <input type="number" class="form-control" id="igst_rate" name="igst_rate" step="0.01" 
+                               value="{{ ratelist.igst_rate if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="cgst_rate" class="form-label">CGST Rate (%)</label>
+                        <input type="number" class="form-control" id="cgst_rate" name="cgst_rate" step="0.01" 
+                               value="{{ ratelist.cgst_rate if edit else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="sgst_rate" class="form-label">SGST Rate (%)</label>
+                        <input type="number" class="form-control" id="sgst_rate" name="sgst_rate" step="0.01" 
+                               value="{{ ratelist.sgst_rate if edit else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }}
+                </button>
+                <a href="{{ url_for('ratelists') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Payment Receipt - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-receipt"></i> Create Payment Receipt</h4>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="bilty_id" class="form-label">Select Bilty <span class="text-danger">*</span></label>
+                        <select class="form-select" id="bilty_id" name="bilty_id" required onchange="loadBiltyDetails()">
+                            <option value="">-- Select Bilty --</option>
+                            {% for bill in biltys %}
+                            <option value="{{ bill.id }}"
+                                    data-freight-due="{{ bill.freight_due or 0 }}"
+                                    data-paid-amount="{{ bill.paid_amount or 0 }}"
+                                    data-balance="{{ (bill.freight_due or 0) - (bill.paid_amount or 0) }}"
+                                    data-bilty-name="{{ bill.name }}">
+                                {{ bill.name }} - {{ bill.consignor_name }} to {{ bill.consignee_name }} (Balance: ₹{{ (bill.freight_due or 0) - (bill.paid_amount or 0) }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="receipt_date" class="form-label">Receipt Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="receipt_date" name="receipt_date" required value="{{ today }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="bilty-details" style="display: none;">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <strong>Bilty Details:</strong>
+                        <span id="bilty-name"></span><br>
+                        <strong>Freight Due:</strong> ₹<span id="freight-due"></span> |
+                        <strong>Already Paid:</strong> ₹<span id="paid-amount"></span> |
+                        <strong>Current Balance:</strong> ₹<span id="current-balance"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="payment-section" style="display: none;">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="amount_received" class="form-label">Amount Received <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="amount_received" name="amount_received" step="0.01" required onchange="calculatePayment()">
+                        <div class="form-text text-muted">Enter the amount received</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" id="tds-section" style="display: none;">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="tds_amount" class="form-label">TDS Amount (Optional)</label>
+                        <input type="number" class="form-control" id="tds_amount" name="tds_amount" step="0.01" value="0" onchange="calculatePayment()">
+                        <div class="form-text text-muted">If payment is short, enter TDS amount</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" id="optional-section" style="display: none;">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="optional_amount" class="form-label">Optional Amount (Pending)</label>
+                        <input type="number" class="form-control" id="optional_amount" name="optional_amount" step="0.01" value="0" onchange="calculatePayment()">
+                        <div class="form-text text-muted">If still pending after TDS</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="optional-reason-section" style="display: none;">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="optional_amount_reason" class="form-label">Reason for Optional Amount</label>
+                        <textarea class="form-control" id="optional_amount_reason" name="optional_amount_reason" rows="2" placeholder="Enter reason for pending amount..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="summary-section" style="display: none;">
+                <div class="col-12">
+                    <div class="alert alert-success">
+                        <h5 class="alert-heading">Payment Summary</h5>
+                        <p><strong>Total Received:</strong> ₹<span id="total-received">0</span></p>
+                        <p><strong>Balance Before:</strong> ₹<span id="balance-before">0</span></p>
+                        <p><strong>Balance After:</strong> ₹<span id="balance-after">0</span></p>
+                        <p><strong>Status:</strong> <span id="payment-status"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="remarks-section" style="display: none;">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="remarks" class="form-label">Remarks</label>
+                        <textarea class="form-control" id="remarks" name="remarks" rows="2" placeholder="Any additional remarks..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="submit-section" style="display: none;">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Create Payment Receipt</button>
+                    <a href="{{ url_for('payment_receipts') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function loadBiltyDetails() {
+    const biltySelect = document.getElementById('bilty_id');
+    const selectedOption = biltySelect.options[biltySelect.selectedIndex];
+    
+    console.log('Loading bilty details for:', biltySelect.value);
+    
+    if (biltySelect.value) {
+        document.getElementById('bilty-details').style.display = 'block';
+        document.getElementById('payment-section').style.display = 'block';
+        document.getElementById('remarks-section').style.display = 'block';
+        document.getElementById('submit-section').style.display = 'block';
+        
+        const freightDue = parseFloat(selectedOption.getAttribute('data-freight-due')) || 0;
+        const paidAmount = parseFloat(selectedOption.getAttribute('data-paid-amount')) || 0;
+        const currentBalance = freightDue - paidAmount;
+        
+        document.getElementById('bilty-name').textContent = selectedOption.getAttribute('data-bilty-name');
+        document.getElementById('freight-due').textContent = freightDue.toFixed(2);
+        document.getElementById('paid-amount').textContent = paidAmount.toFixed(2);
+        document.getElementById('current-balance').textContent = currentBalance.toFixed(2);
+        
+        // Reset payment fields
+        document.getElementById('amount_received').value = '';
+        document.getElementById('tds_amount').value = '0';
+        document.getElementById('optional_amount').value = '0';
+        document.getElementById('optional_amount_reason').value = '';
+        
+        calculatePayment();
+    } else {
+        document.getElementById('bilty-details').style.display = 'none';
+        document.getElementById('payment-section').style.display = 'none';
+        document.getElementById('summary-section').style.display = 'none';
+        document.getElementById('remarks-section').style.display = 'none';
+        document.getElementById('submit-section').style.display = 'none';
+    }
+}
+
+function calculatePayment() {
+    const biltySelect = document.getElementById('bilty_id');
+    const selectedOption = biltySelect.options[biltySelect.selectedIndex];
+    
+    const freightDue = parseFloat(selectedOption.getAttribute('data-freight-due')) || 0;
+    const paidAmount = parseFloat(selectedOption.getAttribute('data-paid-amount')) || 0;
+    const currentBalance = freightDue - paidAmount;
+    
+    const amountReceived = parseFloat(document.getElementById('amount_received').value) || 0;
+    const tdsAmount = parseFloat(document.getElementById('tds_amount').value) || 0;
+    const optionalAmount = parseFloat(document.getElementById('optional_amount').value) || 0;
+    
+    const totalReceived = amountReceived + tdsAmount + optionalAmount;
+    const balanceAfter = currentBalance - totalReceived;
+    
+    document.getElementById('total-received').textContent = totalReceived.toFixed(2);
+    document.getElementById('balance-before').textContent = currentBalance.toFixed(2);
+    document.getElementById('balance-after').textContent = balanceAfter.toFixed(2);
+    
+    const summarySection = document.getElementById('summary-section');
+    const optionalReasonSection = document.getElementById('optional-reason-section');
+    const optionalSection = document.getElementById('optional-section');
+    
+    if (amountReceived > 0 || tdsAmount > 0 || optionalAmount > 0) {
+        summarySection.style.display = 'block';
+        
+        const statusElement = document.getElementById('payment-status');
+        if (balanceAfter <= 0) {
+            statusElement.textContent = 'Payment Complete';
+            statusElement.className = 'text-success fw-bold';
+        } else if (balanceAfter < currentBalance) {
+            statusElement.textContent = 'Partial Payment';
+            statusElement.className = 'text-warning fw-bold';
+        } else {
+            statusElement.textContent = 'No Payment';
+            statusElement.className = 'text-muted fw-bold';
+        }
+    } else {
+        summarySection.style.display = 'none';
+    }
+    
+    // Show TDS field if payment is short
+    const tdsSection = document.getElementById('tds-section');
+    if (amountReceived > 0 && amountReceived < currentBalance) {
+        tdsSection.style.display = 'block';
+    } else {
+        tdsSection.style.display = 'none';
+    }
+    
+    // Show optional amount section if still pending after TDS
+    const pendingAfterTDS = currentBalance - amountReceived - tdsAmount;
+    if (pendingAfterTDS > 0 && amountReceived > 0) {
+        optionalSection.style.display = 'block';
+    } else {
+        optionalSection.style.display = 'none';
+    }
+    
+    // Show optional amount reason if optional amount is entered
+    if (optionalAmount > 0) {
+        optionalReasonSection.style.display = 'block';
+        document.getElementById('optional_amount_reason').required = true;
+    } else {
+        optionalReasonSection.style.display = 'none';
+        document.getElementById('optional_amount_reason').required = false;
+    }
+}
+</script>
+{% endblock %}

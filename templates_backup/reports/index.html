@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-graph-up"></i> Transport Bill Reports</h4>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Options</h5>
+    </div>
+    <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('generate_report') }}">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="vehicle_id" class="form-label">Vehicle</label>
+                        <select class="form-select" id="vehicle_id" name="vehicle_id">
+                            <option value="">All Vehicles</option>
+                            {% for veh in vehicles %}
+                            <option value="{{ veh.id }}" {% if filter_vehicle == veh.id|string %}selected{% endif %}>
+                                {{ veh.registration_number }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="from_date" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="from_date" name="from_date" 
+                               value="{{ filter_from }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="to_date" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="to_date" name="to_date" 
+                               value="{{ filter_to }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Generate
+                        </button>
+                        {% if has_permission('reports', 'export') %}
+                        <button type="submit" name="export" value="csv" class="btn btn-success">
+                            <i class="bi bi-download"></i> CSV
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Results -->
+{% if bills is defined %}
+<div class="card">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-table"></i> Report Results ({{ bills|length }} records)</h5>
+        {% if bills %}
+        <span class="badge bg-primary">Total Amount: Rs. {{ bills|sum(attribute='rate') }}</span>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Bill No</th>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Challan No</th>
+                        <th>Party</th>
+                        <th>Location</th>
+                        <th>Delivery Type</th>
+                        {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                        <th>Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bill in bills %}
+                    <tr>
+                        <td><span class="badge bg-primary">{{ bill.name }}</span></td>
+                        <td>{{ bill.date.strftime('%Y-%m-%d') if bill.date else '-' }}</td>
+                        <td>{{ bill.vehicle.registration_number if bill.vehicle else '-' }}</td>
+                        <td>{{ bill.challan_number or '-' }}</td>
+                        <td>{{ bill.party_information or '-' }}</td>
+                        <td>{{ bill.location.location if bill.location else '-' }}</td>
+                        <td>{{ bill.delivery_type.delivery_type if bill.delivery_type else '-' }}</td>
+                        {% if show_tenant_column %}<td>{{ bill.tenant.name if bill.tenant else '-' }}</td>{% endif %}
+                        <td><span class="badge bg-success">Rs. {{ bill.rate }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ 9 if show_tenant_column else 8 }}" class="text-center py-4 text-muted">
+                            No records found for the selected filters.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

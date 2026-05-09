@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Vehicles - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <h4 class="mb-0"><i class="bi bi-car-front"></i> Vehicles</h4>
+    <div class="d-flex gap-2">
+        {% if has_permission('vehicles', 'view') %}
+        <a href="{{ url_for('export_vehicles') }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export
+        </a>
+        {% endif %}
+        {% if has_permission('vehicles', 'create') %}
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-upload"></i> Import
+        </button>
+        <a href="{{ url_for('create_vehicle') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Vehicle
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Import Modal -->
+{% if has_permission('vehicles', 'create') %}
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Vehicles from Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('import_vehicles') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            File should have columns: Registration Number, Type, Make, Model, Year, Color, Owner Name, Owner Contact, Insurance Expiry, Fitness Expiry, Status
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Registration Number</th>
+                    {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                    <th>Type</th>
+                    <th>Make & Model</th>
+                    <th>Year</th>
+                    <th>Fuel</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for veh in vehicles %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <strong>{{ veh.registration_number }}</strong>
+                        {% if veh.owner_name %}
+                        <br><small class="text-muted">{{ veh.owner_name }}</small>
+                        {% endif %}
+                    </td>
+                    {% if show_tenant_column %}<td>{{ veh.tenant.name if veh.tenant else '-' }}</td>{% endif %}
+                    <td>{{ veh.vehicle_type or '-' }}</td>
+                    <td>
+                        {% if veh.make %}{{ veh.make }}{% endif %}
+                        {% if veh.model %}{{ veh.model }}{% endif %}
+                        {% if not veh.make and not veh.model %}-{% endif %}
+                    </td>
+                    <td>{{ veh.year or '-' }}</td>
+                    <td>{{ veh.fuel_type or '-' }}</td>
+                    <td>
+                        {% if veh.status == 'Active' %}
+                        <span class="badge bg-success">Active</span>
+                        {% elif veh.status == 'Inactive' %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% elif veh.status == 'Under Maintenance' %}
+                        <span class="badge bg-warning text-dark">Maintenance</span>
+                        {% elif veh.status == 'Sold' %}
+                        <span class="badge bg-danger">Sold</span>
+                        {% else %}
+                        <span class="badge bg-light text-dark">{{ veh.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if has_permission('vehicles', 'edit') %}
+                        <a href="{{ url_for('edit_vehicle', id=veh.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% endif %}
+                        {% if has_permission('vehicles', 'delete') %}
+                        <form action="{{ url_for('delete_vehicle', id=veh.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this vehicle?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ 9 if show_tenant_column else 8 }}" class="text-center py-4 text-muted">
+                        No vehicles found.{% if has_permission('vehicles', 'create') %} <a href="{{ url_for('create_vehicle') }}">Create one</a>.{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

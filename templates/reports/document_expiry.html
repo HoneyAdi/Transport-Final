@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Document Expiry Report - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Document Expiry Report</h4>
+        <small class="text-muted">Licenses, insurance, RC expiry alerts (within {{ warning_days }} days)</small>
+    </div>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Summary Card -->
+<div class="row g-4 mb-4">
+    <div class="col-md-12">
+        <div class="card {{ 'bg-danger' if all_alerts else 'bg-success' }} text-white">
+            <div class="card-body">
+                <h5 class="card-title">Documents Expiring Soon</h5>
+                <h2 class="mb-0">{{ all_alerts|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Results -->
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-table"></i> Expiry Alerts ({{ all_alerts|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Document Type</th>
+                        <th>Name/Registration</th>
+                        <th>Expiry Date</th>
+                        <th>Days Until Expiry</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in all_alerts %}
+                    <tr>
+                        <td>{{ alert.type }}</td>
+                        <td>{{ alert.name }}</td>
+                        <td>{{ alert.expiry_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if alert.days_until < 0 %}
+                            <span class="badge bg-danger">{{ alert.days_until }} days (expired)</span>
+                            {% elif alert.days_until <= 7 %}
+                            <span class="badge bg-danger">{{ alert.days_until }} days</span>
+                            {% elif alert.days_until <= 15 %}
+                            <span class="badge bg-warning">{{ alert.days_until }} days</span>
+                            {% else %}
+                            <span class="badge bg-info">{{ alert.days_until }} days</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if alert.days_until < 0 %}
+                            <span class="badge bg-danger">Expired</span>
+                            {% else %}
+                            <span class="badge bg-warning">Expiring</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">No documents expiring within {{ warning_days }} days.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

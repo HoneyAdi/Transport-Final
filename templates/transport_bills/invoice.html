@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - {{ bill.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8fafc; color: #111827; }
+        .invoice-page { max-width: 980px; margin: 24px auto; background: white; padding: 32px; border: 1px solid #e5e7eb; }
+        .muted { color: #6b7280; }
+        @media print {
+            body { background: white; }
+            .invoice-page { margin: 0; max-width: none; border: none; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="invoice-page">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="mb-1">Transport Invoice</h2>
+            <div class="muted">Bilty: {{ bill.name }}</div>
+            <div class="muted">Date: {{ bill.date.strftime('%Y-%m-%d') if bill.date else '-' }}</div>
+        </div>
+        <button class="btn btn-primary no-print" onclick="window.print()">Print</button>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <h6>Bill To</h6>
+            <div>{{ bill.party_information or bill.consignor_name or '-' }}</div>
+            <div class="muted">{{ bill.consignor_address or '' }}</div>
+            {% if bill.consignor_gstin %}<div class="muted">GSTIN: {{ bill.consignor_gstin }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+            <h6>Shipment</h6>
+            <div>GR: {{ bill.gr_number or '-' }}</div>
+            <div>Vehicle: {{ bill.vehicle.registration_number if bill.vehicle else '-' }}</div>
+            <div>Route: {{ bill.branch_booking_location or bill.pickup_city or '-' }} to {{ bill.delivery_location or (bill.location.location if bill.location else '-') }}</div>
+            <div>Status: {{ (bill.status or 'booked').replace('_', ' ').title() }}</div>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Description</th>
+                <th class="text-end">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Freight and transport charges</td>
+                <td class="text-end">Rs. {{ '%.2f'|format(invoice_total) }}</td>
+            </tr>
+            <tr>
+                <td>Payments received</td>
+                <td class="text-end">Rs. {{ '%.2f'|format(total_paid) }}</td>
+            </tr>
+            <tr>
+                <th>Balance Due</th>
+                <th class="text-end">Rs. {{ '%.2f'|format(balance_due) }}</th>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if receipts %}
+    <h6 class="mt-4">Receipt History</h6>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Receipt</th>
+                <th>Date</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end">Balance After</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for receipt in receipts %}
+            <tr>
+                <td>{{ receipt.receipt_number }}</td>
+                <td>{{ receipt.receipt_date.strftime('%Y-%m-%d') if receipt.receipt_date else '-' }}</td>
+                <td class="text-end">Rs. {{ receipt.amount_received }}</td>
+                <td class="text-end">Rs. {{ receipt.balance_after }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+</body>
+</html>

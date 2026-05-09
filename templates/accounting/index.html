@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Accounting Integration - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-journal-text"></i> Accounting Integration</h4>
+        <small class="text-muted">Export sales and receipt vouchers for Tally/Zoho/QuickBooks import.</small>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Integration Settings</h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Provider</label>
+                        <select name="provider" class="form-select">
+                            {% for provider in ['tally', 'zoho_books', 'quickbooks', 'generic_csv'] %}
+                            <option value="{{ provider }}" {% if integration and integration.provider == provider %}selected{% endif %}>{{ provider.replace('_', ' ').title() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <select name="export_format" class="form-select">
+                            <option value="csv" {% if not integration or integration.export_format == 'csv' %}selected{% endif %}>CSV</option>
+                            <option value="json" {% if integration and integration.export_format == 'json' %}selected{% endif %}>JSON API Payload</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">API Base URL</label>
+                        <input name="api_base_url" class="form-control" value="{{ integration.api_base_url if integration else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">API Key</label>
+                        <input name="api_key" class="form-control" value="{{ integration.api_key if integration else '' }}">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Sales Ledger</label>
+                            <input name="ledger_sales" class="form-control" value="{{ integration.ledger_sales if integration else 'Freight Sales' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Receivable Ledger</label>
+                            <input name="ledger_receivable" class="form-control" value="{{ integration.ledger_receivable if integration else 'Sundry Debtors' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tax Ledger</label>
+                            <input name="ledger_tax" class="form-control" value="{{ integration.ledger_tax if integration else 'GST Output' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cash/Bank Ledger</label>
+                            <input name="ledger_cash_bank" class="form-control" value="{{ integration.ledger_cash_bank if integration else 'Bank' }}">
+                        </div>
+                    </div>
+                    <div class="form-check my-3">
+                        <input type="checkbox" name="is_active" class="form-check-input" id="is_active" {% if not integration or integration.is_active %}checked{% endif %}>
+                        <label for="is_active" class="form-check-label">Active</label>
+                    </div>
+                    {% if has_permission('accounting', 'edit') %}
+                    <button class="btn btn-primary">Save Settings</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Generate Export</h5>
+                <form method="GET" action="{{ url_for('accounting_export') }}" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Type</label>
+                        <select name="type" class="form-select">
+                            <option value="all">Sales + Receipts</option>
+                            <option value="sales">Sales Only</option>
+                            <option value="receipts">Receipts Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">From Date</label>
+                        <input type="date" name="from_date" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">To Date</label>
+                        <input type="date" name="to_date" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-success"><i class="bi bi-download"></i> Download Accounting CSV</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Recent Exports</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>Date</th><th>Type</th><th>Records</th><th>File</th></tr></thead>
+                        <tbody>
+                            {% for export in exports %}
+                            <tr>
+                                <td>{{ export.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ export.export_type }}</td>
+                                <td>{{ export.records_count }}</td>
+                                <td>{{ export.file_name }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-muted text-center">No exports yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

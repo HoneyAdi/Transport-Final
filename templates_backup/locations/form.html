@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Add' }} Rate - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-currency-dollar"></i> {{ 'Edit' if edit else 'Add' }} Rate</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% include '_tenant_selector.html' %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="location" name="location" 
+                               value="{{ location.location if edit else '' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="rate" class="form-label">Rate (₹)</label>
+                        <input type="number" class="form-control" id="rate" name="rate" min="0" 
+                               value="{{ location.rate if edit else '0' }}">
+                        <div class="form-text">This rate will be auto-suggested when selecting this location in bills.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }}
+                </button>
+                <a href="{{ url_for('locations') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

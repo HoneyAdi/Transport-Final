@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Add' }} Loan - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-bank"></i> {{ 'Edit' if edit else 'Add' }} Loan</h4>
+    {% if edit %}
+    <small class="text-muted">{{ loan.name }} - {{ loan.loan_type }}</small>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% include '_tenant_selector.html' %}
+            <!-- Loan Type & Vehicle -->
+            <h6 class="text-primary mb-3"><i class="bi bi-truck"></i> Loan Type & Vehicle</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Loan Type <span class="text-danger">*</span></label>
+                    <select name="loan_type" class="form-select" required>
+                        <option value="">Select Type</option>
+                        {% for lt in loan_types %}
+                        <option value="{{ lt }}" {{ 'selected' if edit and loan.loan_type == lt else '' }}>{{ lt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Vehicle <span class="text-danger">*</span></label>
+                    <select name="vehicle_id" class="form-select" required>
+                        <option value="">-- Select Vehicle --</option>
+                        {% for veh in vehicles %}
+                        <option value="{{ veh.id }}" {{ 'selected' if edit and loan.vehicle_id == veh.id else '' }}>
+                            {{ veh.registration_number }}{% if veh.vehicle_type %} ({{ veh.vehicle_type }}){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="Active" {{ 'selected' if edit and loan.status == 'Active' else '' }}>Active</option>
+                        <option value="Pending" {{ 'selected' if edit and loan.status == 'Pending' else '' }}>Pending</option>
+                        <option value="Closed" {{ 'selected' if edit and loan.status == 'Closed' else '' }}>Closed</option>
+                        <option value="Defaulted" {{ 'selected' if edit and loan.status == 'Defaulted' else '' }}>Defaulted</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Loan Financial Details -->
+            <h6 class="text-primary mb-3"><i class="bi bi-calculator"></i> Loan Financial Details</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Principal Amount (Rs.) <span class="text-danger">*</span></label>
+                    <input type="number" name="principal_amount" class="form-control" step="0.01" min="0"
+                           value="{{ '%.2f'|format(loan.principal_amount|float) if edit else '' }}" required placeholder="Loan amount">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Interest Rate (%) <span class="text-danger">*</span></label>
+                    <input type="number" name="interest_rate" class="form-control" step="0.01" min="0" max="100"
+                           value="{{ '%.2f'|format(loan.interest_rate|float) if edit else '' }}" required placeholder="Annual %">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tenure (Months) <span class="text-danger">*</span></label>
+                    <input type="number" name="tenure_months" class="form-control" min="1" max="360"
+                           value="{{ loan.tenure_months if edit else '' }}" required placeholder="Months">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Down Payment (Rs.)</label>
+                    <input type="number" name="down_payment" class="form-control" step="0.01" min="0"
+                           value="{{ '%.2f'|format(loan.down_payment|float) if edit else '0.00' }}" placeholder="Initial payment">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Loan Account No.</label>
+                    <input type="text" name="loan_account_number" class="form-control" 
+                           value="{{ loan.loan_account_number if edit else '' }}" placeholder="Account #">
+                </div>
+            </div>
+
+            <!-- Lender Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-building"></i> Lender Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Lender Name</label>
+                    <input type="text" name="lender_name" class="form-control" 
+                           value="{{ loan.lender_name if edit else '' }}" placeholder="e.g., SBI, HDFC Bank">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Lender Type</label>
+                    <select name="lender_type" class="form-select">
+                        <option value="">Select</option>
+                        {% for lt in lender_types %}
+                        <option value="{{ lt }}" {{ 'selected' if edit and loan.lender_type == lt else '' }}>{{ lt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Lender Contact</label>
+                    <input type="text" name="lender_contact" class="form-control" 
+                           value="{{ loan.lender_contact if edit else '' }}" placeholder="Phone/Email">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Agent Name</label>
+                    <input type="text" name="agent_name" class="form-control" 
+                           value="{{ loan.agent_name if edit else '' }}" placeholder="Agent">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Agent Contact</label>
+                    <input type="text" name="agent_contact" class="form-control" 
+                           value="{{ loan.agent_contact if edit else '' }}" placeholder="Phone">
+                </div>
+            </div>
+
+            <!-- Loan Dates -->
+            <h6 class="text-primary mb-3"><i class="bi bi-calendar-event"></i> Loan Dates</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Loan Date</label>
+                    <input type="date" name="loan_date" class="form-control" 
+                           value="{{ loan.loan_date.strftime('%Y-%m-%d') if edit and loan.loan_date else today }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Disbursement Date</label>
+                    <input type="date" name="disbursement_date" class="form-control" 
+                           value="{{ loan.disbursement_date.strftime('%Y-%m-%d') if edit and loan.disbursement_date else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">First EMI Date</label>
+                    <input type="date" name="first_emi_date" class="form-control" 
+                           value="{{ loan.first_emi_date.strftime('%Y-%m-%d') if edit and loan.first_emi_date else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Lender Address</label>
+                    <input type="text" name="lender_address" class="form-control" 
+                           value="{{ loan.lender_address if edit else '' }}" placeholder="Branch address">
+                </div>
+            </div>
+
+            <!-- Additional Details -->
+            <h6 class="text-primary mb-3"><i class="bi bi-file-text"></i> Additional Details</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Purpose of Loan</label>
+                    <textarea class="form-control" name="purpose" rows="2" placeholder="e.g., Purchase of truck body, Vehicle modification...">{{ loan.purpose if edit else '' }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Collateral Details</label>
+                    <textarea class="form-control" name="collateral" rows="2" placeholder="e.g., Vehicle hypothecation, Property documents...">{{ loan.collateral if edit else '' }}</textarea>
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Insurance Details</label>
+                    <input type="text" name="insurance_details" class="form-control" 
+                           value="{{ loan.insurance_details if edit else '' }}" placeholder="Policy number, provider, validity">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Remarks</label>
+                    <input type="text" name="remarks" class="form-control" 
+                           value="{{ loan.remarks if edit else '' }}" placeholder="Any additional notes">
+                </div>
+            </div>
+
+            {% if edit %}
+            <!-- Payment Summary (View Only) -->
+            <h6 class="text-primary mb-3"><i class="bi bi-graph-up"></i> Payment Summary</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Total Payable</label>
+                    <input type="text" class="form-control" value="Rs. {{ '%.2f'|format(loan.total_payable|float) }}" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Total Interest</label>
+                    <input type="text" class="form-control" value="Rs. {{ '%.2f'|format(loan.total_interest|float) }}" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Amount Paid</label>
+                    <input type="text" class="form-control" value="Rs. {{ '%.2f'|format(loan.amount_paid|float) }}" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Balance</label>
+                    <input type="text" class="form-control" value="Rs. {{ '%.2f'|format(loan.balance_amount|float) }}" readonly>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }} Loan
+                </button>
+                <a href="{{ url_for('loans') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

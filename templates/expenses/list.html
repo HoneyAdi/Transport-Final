@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Expenses - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-wallet2"></i> Expenses</h4>
+        <small class="text-muted">Total: Rs. {{ "%.2f"|format(total_expenses|float) }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        {% if has_permission('expenses', 'view') %}
+        <a href="{{ url_for('export_expenses') }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export
+        </a>
+        {% endif %}
+        {% if has_permission('expenses', 'create') %}
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-upload"></i> Import
+        </button>
+        <a href="{{ url_for('create_expense') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Expense
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Import Modal -->
+{% if has_permission('expenses', 'create') %}
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Expenses from Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('import_expenses') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            File should have columns: Expense Name, Date, Category, Amount, Payment Mode, Vendor, Vehicle, Status, Description
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Expense No</th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                    <th>Description</th>
+                    <th>Vehicle</th>
+                    <th>Location</th>
+                    <th>Vendor</th>
+                    <th>Bill No</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exp in expenses %}
+                <tr>
+                    <td><strong>{{ exp.name }}</strong></td>
+                    <td>{{ exp.expense_date.strftime('%Y-%m-%d') }}</td>
+                    <td><span class="badge bg-secondary">{{ exp.category }}</span></td>
+                    {% if show_tenant_column %}<td>{{ exp.tenant.name if exp.tenant else '-' }}</td>{% endif %}
+                    <td>{{ exp.description or '-' }}</td>
+                    <td>{{ exp.vehicle.registration_number if exp.vehicle else '-' }}</td>
+                    <td>{{ exp.location.location if exp.location else '-' }}</td>
+                    <td>{{ exp.vendor_name or '-' }}</td>
+                    <td>{{ exp.bill_number or '-' }}</td>
+                    <td>
+                        {% if exp.status == 'Paid' %}
+                        <span class="badge bg-success">Paid</span>
+                        {% elif exp.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif exp.status == 'Cancelled' %}
+                        <span class="badge bg-danger">Cancelled</span>
+                        {% else %}
+                        <span class="badge bg-light text-dark">{{ exp.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>Rs. {{ "%.2f"|format(exp.amount|float) }}</strong></td>
+                    <td>
+                        {% if has_permission('expenses', 'edit') %}
+                        <a href="{{ url_for('edit_expense', id=exp.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% endif %}
+                        {% if has_permission('expenses', 'delete') %}
+                        <form action="{{ url_for('delete_expense', id=exp.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete expense {{ exp.name }}?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ 12 if show_tenant_column else 11 }}" class="text-center py-4 text-muted">
+                        No expenses found.{% if has_permission('expenses', 'create') %} <a href="{{ url_for('create_expense') }}">Add one</a>.{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

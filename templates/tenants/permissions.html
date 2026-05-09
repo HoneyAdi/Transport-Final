@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Tenant Permissions - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-shield-lock"></i> {{ tenant.name }} Permissions</h4>
+        <small class="text-muted">Disable modules or specific actions for this tenant.</small>
+    </div>
+    <a href="{{ url_for('tenants') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Module</th>
+                            <th>View</th>
+                            <th>Create</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                            <th>Export</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for module_name, label in module_definitions %}
+                        {% set permission = permissions.get(module_name) %}
+                        <tr>
+                            <td><strong>{{ label }}</strong></td>
+                            <td><input type="checkbox" class="form-check-input" name="{{ module_name }}__view" {% if permission and permission.can_view %}checked{% endif %}></td>
+                            <td><input type="checkbox" class="form-check-input" name="{{ module_name }}__create" {% if permission and permission.can_create %}checked{% endif %}></td>
+                            <td><input type="checkbox" class="form-check-input" name="{{ module_name }}__edit" {% if permission and permission.can_edit %}checked{% endif %}></td>
+                            <td><input type="checkbox" class="form-check-input" name="{{ module_name }}__delete" {% if permission and permission.can_delete %}checked{% endif %}></td>
+                            <td><input type="checkbox" class="form-check-input" name="{{ module_name }}__export" {% if permission and permission.can_export %}checked{% endif %}></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Save Permissions
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

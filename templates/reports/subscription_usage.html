@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Subscription Usage Report - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <h4 class="mb-0"><i class="bi bi-bar-chart"></i> Subscription Usage Report</h4>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Reports
+    </a>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Tenant</label>
+                <select class="form-select" name="tenant_id">
+                    <option value="">All Tenants</option>
+                    {% for tenant in tenants %}
+                    <option value="{{ tenant.id }}" {% if selected_tenant_id == tenant.id %}selected{% endif %}>
+                        {{ tenant.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tenant</th>
+                        <th>Plan</th>
+                        <th>Vehicles Used/Limit</th>
+                        <th>Drivers Used/Limit</th>
+                        <th>Users Used/Limit</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usage in usage_data %}
+                    <tr>
+                        <td><strong>{{ usage.tenant.name }}</strong></td>
+                        <td>{{ usage.plan.name }}</td>
+                        <td>
+                            <span class="{% if usage.vehicles_overage > 0 %}text-danger{% endif %}">
+                                {{ usage.vehicles_used }} / {{ usage.vehicles_limit }}
+                            </span>
+                            {% if usage.vehicles_overage > 0 %}
+                            <span class="badge bg-danger ms-1">+{{ usage.vehicles_overage }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="{% if usage.drivers_overage > 0 %}text-danger{% endif %}">
+                                {{ usage.drivers_used }} / {{ usage.drivers_limit }}
+                            </span>
+                            {% if usage.drivers_overage > 0 %}
+                            <span class="badge bg-danger ms-1">+{{ usage.drivers_overage }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="{% if usage.users_overage > 0 %}text-danger{% endif %}">
+                                {{ usage.users_used }} / {{ usage.users_limit }}
+                            </span>
+                            {% if usage.users_overage > 0 %}
+                            <span class="badge bg-danger ms-1">+{{ usage.users_overage }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usage.vehicles_overage > 0 or usage.drivers_overage > 0 or usage.users_overage > 0 %}
+                            <span class="badge bg-danger">Over Limit</span>
+                            {% else %}
+                            <span class="badge bg-success">Within Limit</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            No usage data found for the selected criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

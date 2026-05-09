@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Transport Management System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #7c3aed;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --info-color: #0891b2;
+            --bg-light: #f1f5f9;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: var(--bg-light);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            --bg-light: #0f172a;
+            --bg-white: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            padding-top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-xl);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .sidebar-brand i {
+            font-size: 1.6rem;
+            color: var(--primary-color);
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 16px 8px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .sidebar-nav li {
+            margin: 4px 0;
+        }
+
+        .sidebar-nav a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .hover-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .hover-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .sidebar-nav i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+        }
+
+        .sidebar-footer .user-meta {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-footer .tenant-meta {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.8rem;
+        }
+
+        .logout-link {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .logout-link:hover {
+            background: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        .impersonation-banner {
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #78350f;
+            box-shadow: var(--shadow-md);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 24px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .navbar-top {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 20px 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+        }
+
+        .stat-card.secondary {
+            background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+        }
+
+        .stat-card.success {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-card.info {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .table-container {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #1e40af 100%);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            transition: all 0.2s ease;
+            background: var(--bg-white);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Top Navigation Bar */
+        .top-nav {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-light);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-white);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-light);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .sidebar-toggle {
+            display: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: flex;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+        }
+        .impliment-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--bg-white);
+            box-shadow: var(--shadow-xl);
+            z-index: 2000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+        .impliment-sidebar.open {
+            right: 0;
+        }
+        .impliment-sidebar-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .impliment-sidebar-content {
+            padding: 20px;
+        }
+        .impliment-item {
+            background: var(--bg-light);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        .impliment-item h6 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .impliment-item p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .impliment-toggle-btn {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1500;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.2s ease;
+        }
+        .impliment-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-xl);
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+        .overlay.show {
+            display: block;
+        }
+
+        /* Table Improvements */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table thead th {
+            background: var(--bg-light);
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-primary);
+            padding: 16px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+        .table tbody tr:hover {
+            background: var(--bg-light);
+            transform: scale(1.01);
+        }
+        .table tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-truck"></i> Transport MS
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a></li>
+            {% if can_manage_tenants() %}
+            <li><a href="{{ url_for('tenants') }}" class="{% if request.endpoint in ['tenants', 'create_tenant', 'edit_tenant', 'tenant_permissions'] %}active{% endif %}">
+                <i class="bi bi-buildings"></i> Tenants
+            </a></li>
+            {% endif %}
+            {% if can_manage_users() %}
+            <li><a href="{{ url_for('users') }}" class="{% if request.endpoint in ['users', 'create_user', 'edit_user', 'reset_user_password'] %}active{% endif %}">
+                <i class="bi bi-people"></i> Users
+            </a></li>
+            {% endif %}
+            {% if has_permission('transport_bills', 'view') %}
+            <li><a href="{{ url_for('transport_bills') }}" class="{% if request.endpoint in ['transport_bills', 'create_transport_bill', 'edit_transport_bill'] %}active{% endif %}">
+                <i class="bi bi-file-text"></i> Bilty Generation
+            </a></li>
+            {% endif %}
+            {% if has_permission('dispatch', 'view') %}
+            <li><a href="{{ url_for('dispatch_trips') }}" class="{% if request.endpoint in ['dispatch_trips', 'create_dispatch_trip'] %}active{% endif %}">
+                <i class="bi bi-truck-front"></i> Dispatch / Trips
+            </a></li>
+            {% endif %}
+            {% if has_permission('transport_bills', 'edit') %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('delivery_confirmation') }}">
+                    <i class="bi bi-check-circle"></i> Delivery Confirmation
+                </a>
+            </li>
+            {% endif %}
+            {% if has_permission('transport_bills', 'edit') %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('payment_receipts') }}">
+                    <i class="bi bi-receipt"></i> Payment Receipts
+                </a>
+            </li>
+            {% endif %}
+            {% if has_permission('vendors', 'view') %}
+            <li><a href="{{ url_for('vendors') }}" class="{% if request.endpoint in ['vendors', 'create_vendor', 'edit_vendor'] %}active{% endif %}">
+                <i class="bi bi-shop"></i> Vendors
+            </a></li>
+            {% endif %}
+            {% if has_permission('vehicles', 'view') %}
+            <li><a href="{{ url_for('vehicles') }}" class="{% if request.endpoint in ['vehicles', 'create_vehicle', 'edit_vehicle'] %}active{% endif %}">
+                <i class="bi bi-car-front"></i> Vehicles
+            </a></li>
+            {% endif %}
+            {% if has_permission('drivers', 'view') %}
+            <li><a href="{{ url_for('drivers') }}" class="{% if request.endpoint in ['drivers', 'create_driver', 'edit_driver'] %}active{% endif %}">
+                <i class="bi bi-person-vcard"></i> Drivers
+            </a></li>
+            {% endif %}
+            {% if has_permission('expenses', 'view') %}
+            <li><a href="{{ url_for('expenses') }}" class="{% if request.endpoint in ['expenses', 'create_expense', 'edit_expense'] %}active{% endif %}">
+                <i class="bi bi-wallet2"></i> Expenses
+            </a></li>
+            {% endif %}
+            {% if has_permission('loans', 'view') %}
+            <li><a href="{{ url_for('loans') }}" class="{% if request.endpoint in ['loans', 'create_loan', 'edit_loan'] %}active{% endif %}">
+                <i class="bi bi-bank"></i> Loans
+            </a></li>
+            {% endif %}
+            {% if has_permission('ratelists', 'view') %}
+            <li><a href="{{ url_for('ratelists') }}" class="{% if request.endpoint in ['ratelists', 'create_ratelist', 'edit_ratelist'] %}active{% endif %}">
+                <i class="bi bi-currency-dollar"></i> Rate List
+            </a></li>
+            {% endif %}
+            {% if has_permission('locations', 'view') %}
+            <li><a href="{{ url_for('locations') }}" class="{% if request.endpoint in ['locations', 'create_location', 'edit_location'] %}active{% endif %}">
+                <i class="bi bi-geo-alt"></i> Locations
+            </a></li>
+            {% endif %}
+            {% if has_permission('delivery_types', 'view') %}
+            <li><a href="{{ url_for('delivery_types') }}" class="{% if request.endpoint in ['delivery_types', 'create_delivery_type', 'edit_delivery_type'] %}active{% endif %}">
+                <i class="bi bi-box-seam"></i> Delivery Types
+            </a></li>
+            {% endif %}
+            {% if has_permission('reports', 'view') %}
+            <li><a href="{{ url_for('reports') }}" class="{% if request.endpoint and request.endpoint.startswith('reports') %}active{% endif %}">
+                <i class="bi bi-graph-up"></i> Reports
+            </a></li>
+            {% endif %}
+            {% if has_permission('accounting', 'view') %}
+            <li><a href="{{ url_for('accounting_integration') }}" class="{% if request.endpoint and request.endpoint.startswith('accounting') %}active{% endif %}">
+                <i class="bi bi-journal-text"></i> Accounting
+            </a></li>
+            {% endif %}
+            {% if has_permission('gps', 'view') %}
+            <li><a href="{{ url_for('gps_integration') }}" class="{% if request.endpoint and request.endpoint.startswith('gps') %}active{% endif %}">
+                <i class="bi bi-broadcast-pin"></i> GPS Integration
+            </a></li>
+            {% endif %}
+            {% if is_superadmin() %}
+            <li><a href="{{ url_for('amendment_requests') }}" class="{% if request.endpoint == 'amendment_requests' %}active{% endif %}">
+                <i class="bi bi-clipboard-check"></i> Amendment Requests
+            </a></li>
+            {# 
+            <li class="nav-item mt-3">
+                <small class="text-muted px-3">SUBSCRIPTION</small>
+            </li>
+            <li><a href="{{ url_for('subscription_plans') }}" class="{% if request.endpoint in ['subscription_plans', 'create_subscription_plan', 'edit_subscription_plan'] %}active{% endif %}">
+                <i class="bi bi-card-list"></i> Subscription Plans
+            </a></li>
+            <li><a href="{{ url_for('tenant_subscriptions') }}" class="{% if request.endpoint in ['tenant_subscriptions', 'assign_tenant_subscription', 'record_subscription_payment'] %}active{% endif %}">
+                <i class="bi bi-people"></i> Tenant Subscriptions
+            </a></li>
+            #}
+            {% endif %}
+            <li class="nav-item mt-3">
+                <small class="text-muted px-3">SETTINGS</small>
+            </li>
+            <li><a href="{{ url_for('profile') }}" class="{% if request.endpoint == 'profile' or request.endpoint == 'request_amendment' %}active{% endif %}">
+                <i class="bi bi-person-circle"></i> My Profile
+            </a></li>
+            {% if can_manage_users() %}
+            <li><a href="{{ url_for('customer_accounts') }}" class="{% if request.endpoint == 'customer_accounts' %}active{% endif %}">
+                <i class="bi bi-person-badge"></i> Customer Portal
+            </a></li>
+            <li><a href="{{ url_for('audit_logs') }}" class="{% if request.endpoint == 'audit_logs' %}active{% endif %}">
+                <i class="bi bi-shield-check"></i> Audit Logs
+            </a></li>
+            {% endif %}
+        </ul>
+        <div class="sidebar-footer">
+            <div class="user-meta">
+                <div class="fw-semibold">{{ current_user.full_name if current_user else 'Guest' }}</div>
+                <div class="tenant-meta">{{ current_user.role.replace('_', ' ').title() if current_user else '' }}</div>
+                {% if current_tenant %}
+                <div class="tenant-meta">{{ current_tenant.name }}</div>
+                {% endif %}
+                {% if is_impersonating and original_user %}
+                <div class="tenant-meta">Original: {{ original_user.full_name }}</div>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-link">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation Bar -->
+        <div class="top-nav">
+            <div class="d-flex align-items-center gap-3">
+                <button class="nav-btn sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="nav-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+                    <i class="bi bi-moon" id="darkModeIcon"></i>
+                </button>
+                <button class="nav-btn" title="Notifications">
+                    <i class="bi bi-bell"></i>
+                </button>
+                <button class="nav-btn" title="Settings">
+                    <i class="bi bi-gear"></i>
+                </button>
+            </div>
+        </div>
+
+        {% if is_impersonating and original_user %}
+        <div class="alert impersonation-banner d-flex justify-content-between align-items-center" role="alert">
+            <div>
+                Impersonating <strong>{{ current_user.full_name }}</strong>
+                {% if current_tenant %}for {{ current_tenant.name }}{% endif %}.
+                Actions are being performed as that user.
+            </div>
+            <a href="{{ url_for('exit_impersonation') }}" class="btn btn-sm btn-dark">Exit Impersonation</a>
+        </div>
+        {% endif %}
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('darkModeIcon');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.remove('bi-moon');
+                icon.classList.add('bi-sun');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                icon.classList.remove('bi-sun');
+                icon.classList.add('bi-moon');
+                localStorage.setItem('darkMode', 'false');
+            }
+        }
+
+        // Load dark mode preference on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkMode = localStorage.getItem('darkMode');
+            if (darkMode === 'true') {
+                document.body.classList.add('dark-mode');
+                const icon = document.getElementById('darkModeIcon');
+                icon.classList.remove('bi-moon');
+                icon.classList.add('bi-sun');
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

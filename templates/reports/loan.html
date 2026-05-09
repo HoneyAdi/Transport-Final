@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Loan Repayment Report - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-bank"></i> Loan Repayment Report</h4>
+        <small class="text-muted">Outstanding loans and repayment status</small>
+    </div>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Loan Amount</h6>
+                <h4 class="mb-0">Rs. {{ "{:,.2f}".format(total_loan_amount) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Paid</h6>
+                <h4 class="mb-0">Rs. {{ "{:,.2f}".format(total_paid) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card {{ 'bg-warning' if total_outstanding > 0 else 'bg-success' }} text-white">
+            <div class="card-body">
+                <h6 class="card-title">Total Outstanding</h6>
+                <h4 class="mb-0">Rs. {{ "{:,.2f}".format(total_outstanding) }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Loans -->
+<div class="card mb-4">
+    <div class="card-header bg-warning py-3">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Active Loans ({{ active_loans|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Loan Date</th>
+                        <th>Amount</th>
+                        <th>Paid</th>
+                        <th>Outstanding</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in active_loans %}
+                    <tr>
+                        <td>{{ loan.loan_date.strftime('%Y-%m-%d') if loan.loan_date else '-' }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(loan.loan_amount) }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(loan.amount_paid) }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(loan.loan_amount - loan.amount_paid) }}</td>
+                        <td>
+                            {% set progress_percent = (loan.amount_paid / loan.loan_amount * 100) if loan.loan_amount > 0 else 0 %}
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ progress_percent }}%">
+                                    {{ "{:.0f}".format(progress_percent) }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">No active loans.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- All Loans -->
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-table"></i> All Loans ({{ loans|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Loan Date</th>
+                        <th>Amount</th>
+                        <th>Paid</th>
+                        <th>Outstanding</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.loan_date.strftime('%Y-%m-%d') if loan.loan_date else '-' }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(loan.loan_amount) }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(loan.amount_paid) }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(loan.loan_amount - loan.amount_paid) }}</td>
+                        <td>
+                            {% if loan.amount_paid >= loan.loan_amount %}
+                            <span class="badge bg-success">Paid</span>
+                            {% else %}
+                            <span class="badge bg-warning">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">No loans found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

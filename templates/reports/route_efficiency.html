@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Route Efficiency Report - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-route"></i> Route Efficiency Report</h4>
+        <small class="text-muted">Most profitable routes analysis</small>
+    </div>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Options</h5>
+    </div>
+    <div class="card-body p-4">
+        <form method="GET" action="{{ url_for('route_efficiency_report') }}">
+            <div class="row align-items-end">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="from_date" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="from_date" name="from_date" 
+                               value="{{ from_date.strftime('%Y-%m-%d') if from_date else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="to_date" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="to_date" name="to_date" 
+                               value="{{ to_date.strftime('%Y-%m-%d') if to_date else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Generate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Results -->
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-table"></i> Route Efficiency ({{ route_data|length }} routes)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Location</th>
+                        <th>Trips</th>
+                        <th>Total Revenue</th>
+                        <th>Avg Revenue/Trip</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in route_data %}
+                    <tr>
+                        <td>{{ data.location.location }}</td>
+                        <td>{{ data.trip_count }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(data.total_revenue) }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(data.avg_revenue) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">No route data found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

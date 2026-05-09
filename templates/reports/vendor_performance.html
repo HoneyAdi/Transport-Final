@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendor Performance Report - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <h4 class="mb-0"><i class="bi bi-person-badge"></i> Vendor Performance Report</h4>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Reports
+    </a>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" class="form-control" name="from_date" value="{{ from_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" class="form-control" name="to_date" value="{{ to_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Vendor</label>
+                <select class="form-select" name="vendor_id">
+                    <option value="">All Vendors</option>
+                    {% for vendor in vendors %}
+                    <option value="{{ vendor.id }}" {% if selected_vendor_id == vendor.id %}selected{% endif %}>
+                        {{ vendor.vendor_name }} ({{ vendor.vendor_code }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Vendor Code</th>
+                        <th>Vendor Name</th>
+                        {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                        <th>Trips Completed</th>
+                        <th>On-Time Deliveries</th>
+                        <th>On-Time Rate</th>
+                        <th>Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for perf in vendor_performance %}
+                    <tr>
+                        <td><strong>{{ perf.vendor.vendor_code }}</strong></td>
+                        <td>{{ perf.vendor.vendor_name }}</td>
+                        {% if show_tenant_column %}<td>{{ perf.vendor.tenant.name if perf.vendor.tenant else '-' }}</td>{% endif %}
+                        <td>{{ perf.trips_count }}</td>
+                        <td>{{ perf.on_time_count }}</td>
+                        <td>
+                            <span class="badge {% if perf.on_time_rate >= 90 %}bg-success{% elif perf.on_time_rate >= 70 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                {{ "%.1f" % perf.on_time_rate }}%
+                            </span>
+                        </td>
+                        <td>₹{{ "{:,.2f}".format(perf.total_revenue) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ 7 if show_tenant_column else 6 }}" class="text-center py-4 text-muted">
+                            No vendor performance data found for the selected criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

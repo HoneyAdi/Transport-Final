@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Plan Dispatch Trip - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-truck-front"></i> Plan Dispatch Trip</h4>
+        <small class="text-muted">Convert a bilty into an executable vehicle trip.</small>
+    </div>
+    <a href="{{ url_for('dispatch_trips') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% include '_tenant_selector.html' %}
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="trip_date" class="form-label">Trip Date</label>
+                    <input type="date" id="trip_date" name="trip_date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="col-md-8">
+                    <label for="bilty_id" class="form-label">Bilty <span class="text-danger">*</span></label>
+                    <select id="bilty_id" name="bilty_id" class="form-select" required>
+                        <option value="">Select Bilty</option>
+                        {% for bill in bills %}
+                        <option value="{{ bill.id }}"
+                                data-origin="{{ bill.branch_booking_location or bill.pickup_city or '' }}"
+                                data-destination="{{ bill.delivery_location or (bill.location.location if bill.location else '') }}"
+                                data-vehicle-id="{{ bill.vehicle_id or '' }}">
+                            {{ bill.name }} - {{ bill.gr_number or 'No GR' }} - {{ bill.party_information or bill.consignor_name or 'No Party' }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="vehicle_id" class="form-label">Vehicle <span class="text-danger">*</span></label>
+                    <select id="vehicle_id" name="vehicle_id" class="form-select" required>
+                        <option value="">Select Vehicle</option>
+                        {% for vehicle in vehicles %}
+                        <option value="{{ vehicle.id }}">{{ vehicle.registration_number }}{% if vehicle.vehicle_type %} - {{ vehicle.vehicle_type }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="driver_id" class="form-label">Driver</label>
+                    <select id="driver_id" name="driver_id" class="form-select">
+                        <option value="">Assign Later</option>
+                        {% for driver in drivers %}
+                        <option value="{{ driver.id }}">{{ driver.first_name }} {{ driver.last_name or '' }}{% if driver.mobile_number %} - {{ driver.mobile_number }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="origin" class="form-label">Origin</label>
+                    <input type="text" id="origin" name="origin" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="destination" class="form-label">Destination</label>
+                    <input type="text" id="destination" name="destination" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="planned_dispatch_at" class="form-label">Planned Dispatch</label>
+                    <input type="datetime-local" id="planned_dispatch_at" name="planned_dispatch_at" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="expected_delivery_at" class="form-label">Expected Delivery</label>
+                    <input type="datetime-local" id="expected_delivery_at" name="expected_delivery_at" class="form-control">
+                </div>
+                <div class="col-12">
+                    <label for="dispatch_notes" class="form-label">Dispatch Notes</label>
+                    <textarea id="dispatch_notes" name="dispatch_notes" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Plan Trip
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const biltySelect = document.getElementById('bilty_id');
+    const originInput = document.getElementById('origin');
+    const destinationInput = document.getElementById('destination');
+    const vehicleSelect = document.getElementById('vehicle_id');
+
+    biltySelect.addEventListener('change', function () {
+        const option = this.options[this.selectedIndex];
+        originInput.value = option.getAttribute('data-origin') || '';
+        destinationInput.value = option.getAttribute('data-destination') || '';
+        const vehicleId = option.getAttribute('data-vehicle-id');
+        if (vehicleId) vehicleSelect.value = vehicleId;
+    });
+});
+</script>
+{% endblock %}

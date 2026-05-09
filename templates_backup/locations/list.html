@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Rate List - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <h4 class="mb-0"><i class="bi bi-currency-dollar"></i> Rate List</h4>
+    <div class="d-flex gap-2">
+        {% if has_permission('locations', 'view') %}
+        <a href="{{ url_for('export_locations') }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export
+        </a>
+        {% endif %}
+        {% if has_permission('locations', 'create') %}
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-upload"></i> Import
+        </button>
+        <a href="{{ url_for('create_location') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Rate
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Import Modal -->
+{% if has_permission('locations', 'create') %}
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Rate List from Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('import_locations') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
+                        <div class="form-text">
+                            File should have columns: Location Name, City, State, Pincode, Rate, Distance (KM), Remarks
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Location</th>
+                    {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                    <th>Rate (₹)</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loc in locations %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ loc.location }}</strong></td>
+                    {% if show_tenant_column %}<td>{{ loc.tenant.name if loc.tenant else '-' }}</td>{% endif %}
+                    <td><span class="badge bg-success">₹{{ loc.rate }}</span></td>
+                    <td>{{ loc.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if has_permission('locations', 'edit') %}
+                        <a href="{{ url_for('edit_location', id=loc.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% endif %}
+                        {% if has_permission('locations', 'delete') %}
+                        <form action="{{ url_for('delete_location', id=loc.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ 6 if show_tenant_column else 5 }}" class="text-center py-4 text-muted">
+                        No locations found.{% if has_permission('locations', 'create') %} <a href="{{ url_for('create_location') }}">Create one</a>.{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

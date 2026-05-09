@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports Dashboard - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-graph-up"></i> Reports Dashboard</h4>
+</div>
+
+<div class="row g-4">
+    <!-- Financial Reports -->
+    <div class="col-12">
+        <h5 class="text-primary mb-3"><i class="bi bi-currency-rupee me-2"></i>Financial Reports</h5>
+    </div>
+    
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-receipt text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Transport Bill Summary</h6>
+                <p class="card-text text-muted small">View bills by date range, vehicle, or route</p>
+                <a href="{{ url_for('transport_bill_report') }}" class="btn btn-primary btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-graph-up-arrow text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Revenue Report</h6>
+                <p class="card-text text-muted small">Monthly, quarterly, yearly revenue analysis</p>
+                <a href="{{ url_for('revenue_report') }}" class="btn btn-success btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-cash-coin text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Payment Collection</h6>
+                <p class="card-text text-muted small">Pending vs collected payments status</p>
+                <a href="{{ url_for('payment_collection_report') }}" class="btn btn-warning btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-wallet2 text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Expense Report</h6>
+                <p class="card-text text-muted small">Categorized expenses breakdown</p>
+                <a href="{{ url_for('expense_report') }}" class="btn btn-danger btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-bank text-info" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Loan Repayment</h6>
+                <p class="card-text text-muted small">Outstanding loans and repayment status</p>
+                <a href="{{ url_for('loan_report') }}" class="btn btn-info btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-graph-down text-secondary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Profit/Loss</h6>
+                <p class="card-text text-muted small">Revenue minus expenses analysis</p>
+                <a href="{{ url_for('profit_loss_report') }}" class="btn btn-secondary btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operational Reports -->
+    <div class="col-12 mt-4">
+        <h5 class="text-primary mb-3"><i class="bi bi-truck me-2"></i>Operational Reports</h5>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-car-front text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Vehicle Utilization</h6>
+                <p class="card-text text-muted small">Vehicle usage and availability stats</p>
+                <a href="{{ url_for('vehicle_utilization_report') }}" class="btn btn-primary btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-person-badge text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Driver Performance</h6>
+                <p class="card-text text-muted small">Trips completed and delivery rates</p>
+                <a href="{{ url_for('driver_performance_report') }}" class="btn btn-success btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-route text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Route Efficiency</h6>
+                <p class="card-text text-muted small">Most profitable routes analysis</p>
+                <a href="{{ url_for('route_efficiency_report') }}" class="btn btn-warning btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-geo-alt text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Location-wise</h6>
+                <p class="card-text text-muted small">Business volume by location</p>
+                <a href="{{ url_for('location_report') }}" class="btn btn-danger btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tenant/Customer Reports -->
+    <div class="col-12 mt-4">
+        <h5 class="text-primary mb-3"><i class="bi bi-buildings me-2"></i>Tenant/Customer Reports</h5>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-people text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Tenant Activity</h6>
+                <p class="card-text text-muted small">Most active tenants and growth trends</p>
+                <a href="{{ url_for('tenant_activity_report') }}" class="btn btn-primary btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-calendar-check text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Subscription Status</h6>
+                <p class="card-text text-muted small">Plan expirations and renewals</p>
+                <a href="{{ url_for('subscription_report') }}" class="btn btn-success btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Reports -->
+    <div class="col-12 mt-4">
+        <h5 class="text-primary mb-3"><i class="bi bi-shop me-2"></i>Vendor Reports</h5>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-person-badge text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Vendor Performance</h6>
+                <p class="card-text text-muted small">Trips, delivery rates, on-time performance</p>
+                <a href="{{ url_for('vendor_performance_report') }}" class="btn btn-primary btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-cash-coin text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Vendor Payments</h6>
+                <p class="card-text text-muted small">Payment history and pending amounts</p>
+                <a href="{{ url_for('vendor_payment_report') }}" class="btn btn-success btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-shield-check text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Vendor Compliance</h6>
+                <p class="card-text text-muted small">KYC status and document verification</p>
+                <a href="{{ url_for('vendor_compliance_report') }}" class="btn btn-warning btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-graph-up-arrow text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Vendor Revenue</h6>
+                <p class="card-text text-muted small">Revenue and profit margins by vendor</p>
+                <a href="{{ url_for('vendor_revenue_report') }}" class="btn btn-danger btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscription Reports -->
+    <div class="col-12 mt-4">
+        <h5 class="text-primary mb-3"><i class="bi bi-clipboard-check me-2"></i>Subscription Reports</h5>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-currency-rupee text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Subscription Revenue</h6>
+                <p class="card-text text-muted small">Revenue by plan and tenant</p>
+                <a href="{{ url_for('subscription_revenue_report') }}" class="btn btn-primary btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-bar-chart text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Subscription Usage</h6>
+                <p class="card-text text-muted small">Vehicles/drivers/users vs limits</p>
+                <a href="{{ url_for('subscription_usage_report') }}" class="btn btn-success btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-receipt text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Subscription Payments</h6>
+                <p class="card-text text-muted small">Payment history and status</p>
+                <a href="{{ url_for('subscription_payment_history_report') }}" class="btn btn-warning btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor User Reports -->
+    <div class="col-12 mt-4">
+        <h5 class="text-primary mb-3"><i class="bi bi-person-gear me-2"></i>Vendor User Reports</h5>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-clock-history text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Vendor User Activity</h6>
+                <p class="card-text text-muted small">Login history and activity logs</p>
+                <a href="{{ url_for('vendor_user_activity_report') }}" class="btn btn-primary btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-shield-lock text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Field Access Logs</h6>
+                <p class="card-text text-muted small">Field permissions and access history</p>
+                <a href="{{ url_for('vendor_field_access_report') }}" class="btn btn-success btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compliance Reports -->
+    <div class="col-12 mt-4">
+        <h5 class="text-primary mb-3"><i class="bi bi-shield-check me-2"></i>Compliance Reports</h5>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-file-earmark-text text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">Document Expiry</h6>
+                <p class="card-text text-muted small">Licenses, insurance, RC expiry alerts</p>
+                <a href="{{ url_for('document_expiry_report') }}" class="btn btn-warning btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-receipt-cutoff text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="card-title">GST Report</h6>
+                <p class="card-text text-muted small">GSTIN-wise billing and tax collected</p>
+                <a href="{{ url_for('gst_report') }}" class="btn btn-danger btn-sm">Generate Report</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-shadow {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

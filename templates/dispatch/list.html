@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Dispatch / Trips - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-truck-front"></i> Dispatch / Trips</h4>
+        <small class="text-muted">Plan, dispatch, track delays, and close deliveries.</small>
+    </div>
+    {% if has_permission('dispatch', 'create') %}
+    <a href="{{ url_for('create_dispatch_trip') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Plan Trip
+    </a>
+    {% endif %}
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Trip</th>
+                    {% if show_tenant_column %}<th>Tenant</th>{% endif %}
+                    <th>Bilty</th>
+                    <th>Route</th>
+                    <th>Vehicle / Driver</th>
+                    <th>Tracking</th>
+                    <th>Status</th>
+                    <th>Execution</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trip in trips %}
+                <tr>
+                    <td>
+                        <strong>{{ trip.trip_number }}</strong>
+                        <br><small class="text-muted">{{ trip.trip_date.strftime('%Y-%m-%d') if trip.trip_date else '-' }}</small>
+                    </td>
+                    {% if show_tenant_column %}<td>{{ trip.tenant.name if trip.tenant else '-' }}</td>{% endif %}
+                    <td>
+                        <span class="badge bg-primary">{{ trip.bilty.name if trip.bilty else '-' }}</span>
+                        {% if trip.bilty and trip.bilty.gr_number %}<br><small>{{ trip.bilty.gr_number }}</small>{% endif %}
+                    </td>
+                    <td>
+                        {{ trip.origin or '-' }}
+                        <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                        {{ trip.destination or '-' }}
+                    </td>
+                    <td>
+                        {{ trip.vehicle.registration_number if trip.vehicle else '-' }}
+                        <br><small class="text-muted">
+                            {% if trip.driver %}{{ trip.driver.first_name }} {{ trip.driver.last_name or '' }}{% else %}No driver assigned{% endif %}
+                        </small>
+                    </td>
+                    <td>
+                        {{ trip.current_location or 'No update yet' }}
+                        {% if trip.delay_reason %}<br><small class="text-danger">{{ trip.delay_reason }}</small>{% endif %}
+                    </td>
+                    <td>
+                        {% set status_class = {
+                            'planned': 'secondary',
+                            'dispatched': 'primary',
+                            'in_transit': 'info',
+                            'delayed': 'warning',
+                            'delivered': 'success',
+                            'closed': 'dark'
+                        }.get(trip.status, 'light') %}
+                        <span class="badge bg-{{ status_class }}">{{ trip.status.replace('_', ' ').title() }}</span>
+                        {% if trip.pod_attachment_path %}
+                        <br><a href="{{ url_for('uploaded_file', filename=trip.pod_attachment_path.replace('uploads/', '')) }}" target="_blank" class="small">POD file</a>
+                        {% endif %}
+                        <br>
+                        <a href="{{ url_for('public_track_trip', token=trip.customer_tracking_token, _external=True) }}" target="_blank" class="small">Customer link</a>
+                        <span class="text-muted small">/</span>
+                        <a href="{{ url_for('driver_trip_update', token=trip.driver_access_token, _external=True) }}" target="_blank" class="small">Driver link</a>
+                    </td>
+                    <td>
+                        {% if has_permission('dispatch', 'edit') %}
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if trip.status == 'planned' %}
+                            <form method="POST" action="{{ url_for('update_dispatch_trip', id=trip.id) }}">
+                                <input type="hidden" name="action" value="dispatch">
+                                <button class="btn btn-sm btn-outline-primary" title="Dispatch"><i class="bi bi-send"></i></button>
+                            </form>
+                            {% endif %}
+                            {% if trip.status in ['dispatched', 'delayed'] %}
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#trackingModal{{ trip.id }}" title="Update Tracking">
+                                <i class="bi bi-geo-alt"></i>
+                            </button>
+                            {% endif %}
+                            {% if trip.status in ['dispatched', 'in_transit'] %}
+                            <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#delayModal{{ trip.id }}" title="Record Delay">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </button>
+                            {% endif %}
+                            {% if trip.status in ['in_transit', 'delayed'] %}
+                            <a href="{{ url_for('delivery_confirmation') }}?bill_id={{ trip.bilty_id }}" class="btn btn-sm btn-outline-success" title="Confirm Delivery">
+                                <i class="bi bi-check2-circle"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="modal fade" id="delayModal{{ trip.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{{ url_for('update_dispatch_trip', id=trip.id) }}">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Record Trip Delay</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" name="action" value="delay">
+                                            <div class="mb-3">
+                                                <label class="form-label">Current Location</label>
+                                                <input type="text" name="current_location" class="form-control" value="{{ trip.current_location or '' }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Delay Reason</label>
+                                                <textarea name="delay_reason" class="form-control" rows="3" required>{{ trip.delay_reason or '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-warning">Save Delay</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="trackingModal{{ trip.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{{ url_for('update_dispatch_trip', id=trip.id) }}">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Update Trip Tracking</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" name="action" value="in_transit">
+                                            <div class="mb-3">
+                                                <label class="form-label">Current Location</label>
+                                                <input type="text" name="current_location" class="form-control" value="{{ trip.current_location or trip.origin or '' }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-info">Save Tracking</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ 8 if show_tenant_column else 7 }}" class="text-center py-4 text-muted">
+                        No dispatch trips yet.{% if has_permission('dispatch', 'create') %} <a href="{{ url_for('create_dispatch_trip') }}">Plan one</a>.{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

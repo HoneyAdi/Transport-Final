@@ -1,0 +1,768 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Add' }} Vendor - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-shop"></i> {{ 'Edit' if edit else 'Add' }} Vendor</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% include '_tenant_selector.html' %}
+
+            <!-- Basic Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Basic Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Vendor Code</label>
+                    <input type="text" class="form-control" value="{{ vendor.vendor_code if edit else 'Auto-generated' }}" disabled>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Vendor Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="vendor_name" 
+                           value="{{ vendor.vendor_name if edit else '' }}" required 
+                           placeholder="Enter vendor name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Vendor Type</label>
+                    <select class="form-select" name="vendor_type">
+                        <option value="supplier" {{ 'selected' if edit and vendor.vendor_type == 'supplier' else '' }}>Supplier</option>
+                        <option value="transporter" {{ 'selected' if edit and vendor.vendor_type == 'transporter' else '' }}>Transporter</option>
+                        <option value="contractor" {{ 'selected' if edit and vendor.vendor_type == 'contractor' else '' }}>Contractor</option>
+                        <option value="service_provider" {{ 'selected' if edit and vendor.vendor_type == 'service_provider' else '' }}>Service Provider</option>
+                        <option value="broker" {{ 'selected' if edit and vendor.vendor_type == 'broker' else '' }}>Broker</option>
+                        <option value="other" {{ 'selected' if edit and vendor.vendor_type == 'other' else '' }}>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="active" {{ 'selected' if edit and vendor.status == 'active' else '' }}>Active</option>
+                        <option value="inactive" {{ 'selected' if edit and vendor.status == 'inactive' else '' }}>Inactive</option>
+                        <option value="suspended" {{ 'selected' if edit and vendor.status == 'suspended' else '' }}>Suspended</option>
+                        <option value="blacklisted" {{ 'selected' if edit and vendor.status == 'blacklisted' else '' }}>Blacklisted</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Business Nature</label>
+                    <input type="text" class="form-control" name="business_nature" 
+                           value="{{ vendor.business_nature if edit else '' }}" placeholder="e.g., Manufacturing">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Establishment Date</label>
+                    <input type="date" class="form-control" name="establishment_date" 
+                           value="{{ vendor.establishment_date.strftime('%Y-%m-%d') if edit and vendor.establishment_date else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Website</label>
+                    <input type="url" class="form-control" name="website" 
+                           value="{{ vendor.website if edit else '' }}" placeholder="www.example.com">
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-telephone"></i> Contact Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Contact Person</label>
+                    <input type="text" class="form-control" name="contact_person" 
+                           value="{{ vendor.contact_person if edit else '' }}" placeholder="Primary contact name">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Designation</label>
+                    <input type="text" class="form-control" name="designation" 
+                           value="{{ vendor.designation if edit else '' }}" placeholder="e.g., Manager">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Primary Phone</label>
+                    <input type="tel" class="form-control" name="phone_primary" 
+                           value="{{ vendor.phone_primary if edit else '' }}" placeholder="Landline number">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="tel" class="form-control" name="mobile" 
+                           value="{{ vendor.mobile if edit else '' }}" placeholder="10-digit mobile">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" 
+                           value="{{ vendor.email if edit else '' }}" placeholder="email@example.com">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Alternate Email</label>
+                    <input type="email" class="form-control" name="alternate_email" 
+                           value="{{ vendor.alternate_email if edit else '' }}" placeholder="Alternate email">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fax Number</label>
+                    <input type="text" class="form-control" name="fax_number" 
+                           value="{{ vendor.fax_number if edit else '' }}" placeholder="Fax number">
+                </div>
+            </div>
+
+            <!-- Registered Address -->
+            <h6 class="text-primary mb-3"><i class="bi bi-geo-alt"></i> Registered Address</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" class="form-control" name="reg_address_line1" 
+                           value="{{ vendor.reg_address_line1 if edit else '' }}" placeholder="Street address">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" class="form-control" name="reg_address_line2" 
+                           value="{{ vendor.reg_address_line2 if edit else '' }}" placeholder="Area/Locality">
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-control" name="reg_city" 
+                           value="{{ vendor.reg_city if edit else '' }}" placeholder="City">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-control" name="reg_state" 
+                           value="{{ vendor.reg_state if edit else '' }}" placeholder="State">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Pincode</label>
+                    <input type="text" class="form-control" name="reg_pincode" 
+                           value="{{ vendor.reg_pincode if edit else '' }}" placeholder="Pincode">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Country</label>
+                    <input type="text" class="form-control" name="reg_country" 
+                           value="{{ vendor.reg_country if edit else 'India' }}" placeholder="Country">
+                </div>
+            </div>
+
+            <!-- Office Address -->
+            <h6 class="text-primary mb-3"><i class="bi bi-building"></i> Office/Communication Address</h6>
+            <div class="row g-3 mb-3">
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="same_as_registered" id="sameAsRegistered"
+                               {{ 'checked' if edit and vendor.same_as_registered else '' }}>
+                        <label class="form-check-label" for="sameAsRegistered">
+                            Same as Registered Address
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" class="form-control" name="office_address_line1" 
+                           value="{{ vendor.office_address_line1 if edit else '' }}" placeholder="Street address">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" class="form-control" name="office_address_line2" 
+                           value="{{ vendor.office_address_line2 if edit else '' }}" placeholder="Area/Locality">
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-control" name="office_city" 
+                           value="{{ vendor.office_city if edit else '' }}" placeholder="City">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-control" name="office_state" 
+                           value="{{ vendor.office_state if edit else '' }}" placeholder="State">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Pincode</label>
+                    <input type="text" class="form-control" name="office_pincode" 
+                           value="{{ vendor.office_pincode if edit else '' }}" placeholder="Pincode">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Country</label>
+                    <input type="text" class="form-control" name="office_country" 
+                           value="{{ vendor.office_country if edit else 'India' }}" placeholder="Country">
+                </div>
+            </div>
+
+            <!-- GST & Tax Details -->
+            <h6 class="text-primary mb-3"><i class="bi bi-receipt"></i> GST & Tax Details</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">GSTIN</label>
+                    <input type="text" class="form-control" name="gstin" 
+                           value="{{ vendor.gstin if edit else '' }}" placeholder="15-digit GSTIN">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">GST Registration Date</label>
+                    <input type="date" class="form-control" name="gst_registration_date" 
+                           value="{{ vendor.gst_registration_date.strftime('%Y-%m-%d') if edit and vendor.gst_registration_date else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">GST State Code</label>
+                    <input type="text" class="form-control" name="gst_state_code" 
+                           value="{{ vendor.gst_state_code if edit else '' }}" placeholder="2-digit code">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">PAN Number</label>
+                    <input type="text" class="form-control" name="pan_number" 
+                           value="{{ vendor.pan_number if edit else '' }}" placeholder="ABCDE1234F">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">TAN Number</label>
+                    <input type="text" class="form-control" name="tan_number" 
+                           value="{{ vendor.tan_number if edit else '' }}" placeholder="TAN number">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">TIN Number</label>
+                    <input type="text" class="form-control" name="tin_number" 
+                           value="{{ vendor.tin_number if edit else '' }}" placeholder="TIN number">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">CIN Number</label>
+                    <input type="text" class="form-control" name="cin_number" 
+                           value="{{ vendor.cin_number if edit else '' }}" placeholder="CIN number">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">MSME Number</label>
+                    <input type="text" class="form-control" name="msme_number" 
+                           value="{{ vendor.msme_number if edit else '' }}" placeholder="MSME number">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tax Regime</label>
+                    <select class="form-select" name="tax_regime">
+                        <option value="regular" {{ 'selected' if edit and vendor.tax_regime == 'regular' else '' }}>Regular</option>
+                        <option value="composition" {{ 'selected' if edit and vendor.tax_regime == 'composition' else '' }}>Composition</option>
+                        <option value="exempt" {{ 'selected' if edit and vendor.tax_regime == 'exempt' else '' }}>Exempt</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">TDS Rate (%)</label>
+                    <input type="number" class="form-control" name="tds_rate" step="0.01"
+                           value="{{ vendor.tds_rate if edit else '0' }}" placeholder="TDS percentage">
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_tds_applicable" id="tdsApplicable"
+                               {{ 'checked' if edit and vendor.is_tds_applicable else '' }}>
+                        <label class="form-check-label" for="tdsApplicable">
+                            TDS Applicable
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Account Details -->
+            <h6 class="text-primary mb-3"><i class="bi bi-bank"></i> Bank Account Details</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Bank Name</label>
+                    <input type="text" class="form-control" name="bank_name" 
+                           value="{{ vendor.bank_name if edit else '' }}" placeholder="Bank name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Branch</label>
+                    <input type="text" class="form-control" name="bank_branch" 
+                           value="{{ vendor.bank_branch if edit else '' }}" placeholder="Branch name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" class="form-control" name="account_number" 
+                           value="{{ vendor.account_number if edit else '' }}" placeholder="Account number">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Account Type</label>
+                    <select class="form-select" name="account_type">
+                        <option value="current" {{ 'selected' if edit and vendor.account_type == 'current' else '' }}>Current</option>
+                        <option value="savings" {{ 'selected' if edit and vendor.account_type == 'savings' else '' }}>Savings</option>
+                        <option value="overdraft" {{ 'selected' if edit and vendor.account_type == 'overdraft' else '' }}>Overdraft</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">IFSC Code</label>
+                    <input type="text" class="form-control" name="ifsc_code" 
+                           value="{{ vendor.ifsc_code if edit else '' }}" placeholder="ABCD0123456">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">MICR Code</label>
+                    <input type="text" class="form-control" name="micr_code" 
+                           value="{{ vendor.micr_code if edit else '' }}" placeholder="9-digit MICR">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Swift Code</label>
+                    <input type="text" class="form-control" name="swift_code" 
+                           value="{{ vendor.swift_code if edit else '' }}" placeholder="Swift code">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Bank Address</label>
+                    <textarea class="form-control" name="bank_address" rows="2" placeholder="Bank branch address">{{ vendor.bank_address if edit else '' }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">UPI ID</label>
+                    <input type="text" class="form-control" name="upi_id" 
+                           value="{{ vendor.upi_id if edit else '' }}" placeholder="name@upi">
+                </div>
+            </div>
+
+            <!-- Primary Contact Person -->
+            <h6 class="text-primary mb-3"><i class="bi bi-person"></i> Primary Contact Person</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" name="primary_contact_name" 
+                           value="{{ vendor.primary_contact_name if edit else '' }}" placeholder="Contact name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Designation</label>
+                    <input type="text" class="form-control" name="primary_contact_designation" 
+                           value="{{ vendor.primary_contact_designation if edit else '' }}" placeholder="Designation">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Phone</label>
+                    <input type="tel" class="form-control" name="primary_contact_phone" 
+                           value="{{ vendor.primary_contact_phone if edit else '' }}" placeholder="Phone number">
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Mobile</label>
+                    <input type="tel" class="form-control" name="primary_contact_mobile" 
+                           value="{{ vendor.primary_contact_mobile if edit else '' }}" placeholder="Mobile number">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="primary_contact_email" 
+                           value="{{ vendor.primary_contact_email if edit else '' }}" placeholder="Email address">
+                </div>
+            </div>
+
+            <!-- Secondary Contact Person -->
+            <h6 class="text-primary mb-3"><i class="bi bi-person"></i> Secondary Contact Person</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" name="secondary_contact_name" 
+                           value="{{ vendor.secondary_contact_name if edit else '' }}" placeholder="Contact name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Designation</label>
+                    <input type="text" class="form-control" name="secondary_contact_designation" 
+                           value="{{ vendor.secondary_contact_designation if edit else '' }}" placeholder="Designation">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Phone</label>
+                    <input type="tel" class="form-control" name="secondary_contact_phone" 
+                           value="{{ vendor.secondary_contact_phone if edit else '' }}" placeholder="Phone number">
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Mobile</label>
+                    <input type="tel" class="form-control" name="secondary_contact_mobile" 
+                           value="{{ vendor.secondary_contact_mobile if edit else '' }}" placeholder="Mobile number">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="secondary_contact_email" 
+                           value="{{ vendor.secondary_contact_email if edit else '' }}" placeholder="Email address">
+                </div>
+            </div>
+
+            <!-- Financial Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-currency-rupee"></i> Financial Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Credit Limit</label>
+                    <input type="number" class="form-control" name="credit_limit" step="0.01"
+                           value="{{ vendor.credit_limit if edit else '0' }}" placeholder="Credit limit amount">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Credit Period (Days)</label>
+                    <input type="number" class="form-control" name="credit_period_days"
+                           value="{{ vendor.credit_period_days if edit else '0' }}" placeholder="Days">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Opening Balance</label>
+                    <input type="number" class="form-control" name="opening_balance" step="0.01"
+                           value="{{ vendor.opening_balance if edit else '0' }}" placeholder="Opening balance">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Balance Type</label>
+                    <select class="form-select" name="balance_type">
+                        <option value="dr" {{ 'selected' if edit and vendor.balance_type == 'dr' else '' }}>Dr (Debit)</option>
+                        <option value="cr" {{ 'selected' if edit and vendor.balance_type == 'cr' else '' }}>Cr (Credit)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Currency</label>
+                    <input type="text" class="form-control" name="currency" 
+                           value="{{ vendor.currency if edit else 'INR' }}" placeholder="Currency code">
+                </div>
+                <div class="col-md-9">
+                    <label class="form-label">Payment Terms</label>
+                    <input type="text" class="form-control" name="payment_terms" 
+                           value="{{ vendor.payment_terms if edit else '' }}" placeholder="e.g., Net 30, Advance 50%">
+                </div>
+            </div>
+
+            <!-- Supply Details -->
+            <h6 class="text-primary mb-3"><i class="bi bi-box-seam"></i> Supply Details</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Supply Type</label>
+                    <input type="text" class="form-control" name="supply_type" 
+                           value="{{ vendor.supply_type if edit else '' }}" placeholder="e.g., Goods, Services">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Lead Time (Days)</label>
+                    <input type="number" class="form-control" name="lead_time_days"
+                           value="{{ vendor.lead_time_days if edit else '0' }}" placeholder="Days">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Min Order Value</label>
+                    <input type="number" class="form-control" name="min_order_value" step="0.01"
+                           value="{{ vendor.min_order_value if edit else '0' }}" placeholder="Minimum value">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Max Order Value</label>
+                    <input type="number" class="form-control" name="max_order_value" step="0.01"
+                           value="{{ vendor.max_order_value if edit else '0' }}" placeholder="Maximum value">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Product Categories</label>
+                    <textarea class="form-control" name="product_categories" rows="2" placeholder="Categories of products/services supplied">{{ vendor.product_categories if edit else '' }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Delivery Mode</label>
+                    <input type="text" class="form-control" name="delivery_mode" 
+                           value="{{ vendor.delivery_mode if edit else '' }}" placeholder="e.g., Road, Rail, Courier">
+                </div>
+            </div>
+
+            <!-- Trade References -->
+            <h6 class="text-primary mb-3"><i class="bi bi-people"></i> Trade References</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Reference 1 - Name</label>
+                    <input type="text" class="form-control" name="trade_reference_1_name" 
+                           value="{{ vendor.trade_reference_1_name if edit else '' }}" placeholder="Reference name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Reference 1 - Contact</label>
+                    <input type="text" class="form-control" name="trade_reference_1_contact" 
+                           value="{{ vendor.trade_reference_1_contact if edit else '' }}" placeholder="Phone/Mobile">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Reference 1 - Address</label>
+                    <input type="text" class="form-control" name="trade_reference_1_address" 
+                           value="{{ vendor.trade_reference_1_address if edit else '' }}" placeholder="Address">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Reference 2 - Name</label>
+                    <input type="text" class="form-control" name="trade_reference_2_name" 
+                           value="{{ vendor.trade_reference_2_name if edit else '' }}" placeholder="Reference name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Reference 2 - Contact</label>
+                    <input type="text" class="form-control" name="trade_reference_2_contact" 
+                           value="{{ vendor.trade_reference_2_contact if edit else '' }}" placeholder="Phone/Mobile">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Reference 2 - Address</label>
+                    <input type="text" class="form-control" name="trade_reference_2_address" 
+                           value="{{ vendor.trade_reference_2_address if edit else '' }}" placeholder="Address">
+                </div>
+            </div>
+
+            <!-- Compliance & Verification -->
+            <h6 class="text-primary mb-3"><i class="bi bi-shield-check"></i> Compliance & Verification</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">KYC Status</label>
+                    <select class="form-select" name="kyc_status">
+                        <option value="pending" {{ 'selected' if edit and vendor.kyc_status == 'pending' else '' }}>Pending</option>
+                        <option value="verified" {{ 'selected' if edit and vendor.kyc_status == 'verified' else '' }}>Verified</option>
+                        <option value="rejected" {{ 'selected' if edit and vendor.kyc_status == 'rejected' else '' }}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Verification Date</label>
+                    <input type="date" class="form-control" name="verification_date" 
+                           value="{{ vendor.verification_date.strftime('%Y-%m-%d') if edit and vendor.verification_date else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Verified By</label>
+                    <input type="text" class="form-control" name="verified_by" 
+                           value="{{ vendor.verified_by if edit else '' }}" placeholder="Verifier name">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Compliance Rating</label>
+                    <select class="form-select" name="compliance_rating">
+                        <option value="unrated" {{ 'selected' if edit and vendor.compliance_rating == 'unrated' else '' }}>Unrated</option>
+                        <option value="excellent" {{ 'selected' if edit and vendor.compliance_rating == 'excellent' else '' }}>Excellent</option>
+                        <option value="good" {{ 'selected' if edit and vendor.compliance_rating == 'good' else '' }}>Good</option>
+                        <option value="average" {{ 'selected' if edit and vendor.compliance_rating == 'average' else '' }}>Average</option>
+                        <option value="poor" {{ 'selected' if edit and vendor.compliance_rating == 'poor' else '' }}>Poor</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Background Check Date</label>
+                    <input type="date" class="form-control" name="background_check_date" 
+                           value="{{ vendor.background_check_date.strftime('%Y-%m-%d') if edit and vendor.background_check_date else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="background_check_done" id="bgCheckDone"
+                               {{ 'checked' if edit and vendor.background_check_done else '' }}>
+                        <label class="form-check-label" for="bgCheckDone">
+                            Background Check Done
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_composition_dealer" id="compositionDealer"
+                               {{ 'checked' if edit and vendor.is_composition_dealer else '' }}>
+                        <label class="form-check-label" for="compositionDealer">
+                            Composition Dealer
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendor Addresses -->
+            {% if edit %}
+            <h6 class="text-primary mb-3"><i class="bi bi-geo-alt"></i> Addresses</h6>
+            <div class="row g-3 mb-4">
+                <!-- Existing Addresses -->
+                {% for address in vendor.addresses %}
+                <div class="col-md-6">
+                    <div class="card border">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                            <span><i class="bi bi-geo-alt-fill"></i> {{ address.address_type }}</span>
+                            {% if address.is_primary %}
+                            <span class="badge bg-success">Primary</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-3">
+                            <p class="mb-1">{{ address.address_line1 }}</p>
+                            {% if address.address_line2 %}<p class="mb-1">{{ address.address_line2 }}</p>{% endif %}
+                            <p class="mb-1">{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+                            <p class="mb-1">{{ address.country }}</p>
+                            {% if address.contact_person %}<p class="mb-1 small text-muted">Contact: {{ address.contact_person }}</p>{% endif %}
+                            {% if address.phone %}<p class="mb-1 small text-muted">Phone: {{ address.phone }}</p>{% endif %}
+                            
+                            <div class="mt-2 d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAddressModal{{ address.id }}">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <form method="POST" action="{{ url_for('delete_vendor_address', vendor_id=vendor.id, address_id=address.id) }}" class="d-inline" onsubmit="return confirm('Delete this address?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Address Modal -->
+                <div class="modal fade" id="editAddressModal{{ address.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Address - {{ address.address_type }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('update_vendor_address', vendor_id=vendor.id, address_id=address.id) }}">
+                                <div class="modal-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Address Type</label>
+                                            <select class="form-select" name="address_type" required>
+                                                <option value="Registered Office" {{ 'selected' if address.address_type == 'Registered Office' else '' }}>Registered Office</option>
+                                                <option value="Office" {{ 'selected' if address.address_type == 'Office' else '' }}>Office</option>
+                                                <option value="Billing" {{ 'selected' if address.address_type == 'Billing' else '' }}>Billing</option>
+                                                <option value="Shipping" {{ 'selected' if address.address_type == 'Shipping' else '' }}>Shipping</option>
+                                                <option value="Warehouse" {{ 'selected' if address.address_type == 'Warehouse' else '' }}>Warehouse</option>
+                                                <option value="Factory" {{ 'selected' if address.address_type == 'Factory' else '' }}>Factory</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check mt-4">
+                                                <input class="form-check-input" type="checkbox" name="is_primary" id="isPrimary{{ address.id }}" {{ 'checked' if address.is_primary else '' }}>
+                                                <label class="form-check-label" for="isPrimary{{ address.id }}">Primary Address</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Address Line 1</label>
+                                            <input type="text" class="form-control" name="address_line1" value="{{ address.address_line1 }}" required>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Address Line 2</label>
+                                            <input type="text" class="form-control" name="address_line2" value="{{ address.address_line2 or '' }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">City</label>
+                                            <input type="text" class="form-control" name="city" value="{{ address.city }}" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">State</label>
+                                            <input type="text" class="form-control" name="state" value="{{ address.state }}" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Pincode</label>
+                                            <input type="text" class="form-control" name="pincode" value="{{ address.pincode }}" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Country</label>
+                                            <input type="text" class="form-control" name="country" value="{{ address.country }}" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Contact Person</label>
+                                            <input type="text" class="form-control" name="contact_person" value="{{ address.contact_person or '' }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Phone</label>
+                                            <input type="text" class="form-control" name="phone" value="{{ address.phone or '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Add New Address Button -->
+                <div class="col-12">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                        <i class="bi bi-plus-lg"></i> Add New Address
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Address Modal -->
+            <div class="modal fade" id="addAddressModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Add New Address</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="POST" action="{{ url_for('add_vendor_address', vendor_id=vendor.id) }}">
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Address Type</label>
+                                        <select class="form-select" name="address_type" required>
+                                            <option value="Registered Office">Registered Office</option>
+                                            <option value="Office">Office</option>
+                                            <option value="Billing">Billing</option>
+                                            <option value="Shipping">Shipping</option>
+                                            <option value="Warehouse">Warehouse</option>
+                                            <option value="Factory">Factory</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">Address Line 1</label>
+                                        <input type="text" class="form-control" name="address_line1" required>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">Address Line 2</label>
+                                        <input type="text" class="form-control" name="address_line2">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">City</label>
+                                        <input type="text" class="form-control" name="city" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">State</label>
+                                        <input type="text" class="form-control" name="state" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Pincode</label>
+                                        <input type="text" class="form-control" name="pincode" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Country</label>
+                                        <input type="text" class="form-control" name="country" value="India" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Contact Person</label>
+                                        <input type="text" class="form-control" name="contact_person">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Phone</label>
+                                        <input type="text" class="form-control" name="phone">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Add Address</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Remarks -->
+            <h6 class="text-primary mb-3"><i class="bi bi-chat-left-text"></i> Additional Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <label class="form-label">Remarks / Notes</label>
+                    <textarea class="form-control" name="remarks" rows="3" placeholder="Any additional information about the vendor">{{ vendor.remarks if edit else '' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('vendors') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }} Vendor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

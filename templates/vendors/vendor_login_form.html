@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if edit %}Edit Vendor Login - {{ vendor.vendor_name }}{% else %}Create Vendor Login - {{ vendor.vendor_name }}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        {% if edit %}
+                            <i class="bi bi-person-gear"></i> Edit Vendor Login - {{ vendor.vendor_name }}
+                        {% else %}
+                            <i class="bi bi-person-plus"></i> Create Vendor Login - {{ vendor.vendor_name }}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- User Account Details -->
+                        <h6 class="mb-3"><i class="bi bi-person-circle"></i> User Account Details</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       value="{{ vendor_user.user.username if edit else '' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ vendor_user.user.email if edit else '' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       value="{{ vendor_user.user.full_name if edit else '' }}" required>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">
+                                    {% if edit %}New Password (leave blank to keep current){% else %}Password <span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       {% if not edit %}required{% endif %}>
+                            </div>
+                            {% if edit %}
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                           {% if vendor_user.user.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">Active</label>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Vendor User Settings -->
+                        <h6 class="mb-3"><i class="bi bi-gear"></i> Vendor User Settings</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_primary" name="is_primary" 
+                                           {% if edit and vendor_user.is_primary %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_primary">Primary Contact</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="can_view_own_data" name="can_view_own_data" 
+                                           {% if edit and vendor_user.can_view_own_data %}checked{% else %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_own_data">Can View Own Data</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="can_edit_own_data" name="can_edit_own_data" 
+                                           {% if edit and vendor_user.can_edit_own_data %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_edit_own_data">Can Edit Own Data</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Field Permissions -->
+                        <h6 class="mb-3"><i class="bi bi-shield-lock"></i> Field Permissions</h6>
+                        <p class="text-muted small">Configure which fields this vendor user can view and edit. Fields are organized by category for proper hierarchy.</p>
+                        
+                        {% for category, fields in vendor_fields.items() %}
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 text-capitalize">{{ category }} Fields</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Field Name</th>
+                                                <th style="width: 100px;">View</th>
+                                                <th style="width: 100px;">Edit</th>
+                                                <th style="width: 100px;">Required</th>
+                                                <th style="width: 100px;">Order</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for field in fields %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ field.label }}</strong>
+                                                    {% if field.required %}
+                                                    <span class="badge bg-warning text-dark">Default Required</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="checkbox" class="form-check-input" 
+                                                           id="view_{{ field.name }}" name="view_{{ field.name }}"
+                                                           {% if edit and field.name in existing_permissions and existing_permissions[field.name].can_view %}checked{% else %}checked{% endif %}>
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="checkbox" class="form-check-input" 
+                                                           id="edit_{{ field.name }}" name="edit_{{ field.name }}"
+                                                           {% if edit and field.name in existing_permissions and existing_permissions[field.name].can_edit %}checked{% endif %}>
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="checkbox" class="form-check-input" 
+                                                           id="required_{{ field.name }}" name="required_{{ field.name }}"
+                                                           {% if edit and field.name in existing_permissions and existing_permissions[field.name].is_required %}checked{% endif %}>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           id="order_{{ field.name }}" name="order_{{ field.name }}"
+                                                           value="{% if edit and field.name in existing_permissions %}{{ existing_permissions[field.name].display_order }}{% else %}{{ loop.index }}{% endif %}"
+                                                           min="0" style="width: 70px;">
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('edit_vendor', id=vendor.id) }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Vendor
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> {% if edit %}Update Vendor Login{% else %}Create Vendor Login{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Transport Management System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+        }
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding-top: 20px;
+            z-index: 1000;
+        }
+        .sidebar-brand {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-nav li {
+            margin: 5px 0;
+        }
+        .sidebar-nav a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .sidebar-nav i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+        .sidebar-footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.18);
+            background: rgba(0,0,0,0.08);
+        }
+        .sidebar-footer .user-meta {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.92rem;
+            margin-bottom: 12px;
+        }
+        .sidebar-footer .tenant-meta {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.82rem;
+        }
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .impersonation-banner {
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #ffe082 0%, #ffcc80 100%);
+            color: #4e342e;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+        .navbar-top {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .stat-card.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .stat-card.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .stat-card.warning {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .impliment-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            z-index: 2000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+        .impliment-sidebar.open {
+            right: 0;
+        }
+        .impliment-sidebar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .impliment-sidebar-content {
+            padding: 20px;
+        }
+        .impliment-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .impliment-item h6 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .impliment-item p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .impliment-toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1500;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .impliment-toggle-btn:hover {
+            transform: scale(1.1);
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+        }
+        .overlay.show {
+            display: block;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Implementation Toggle Button -->
+    <button class="impliment-toggle-btn" onclick="toggleImplimentSidebar()" title="Implementation Notes">
+        <i class="bi bi-list-task"></i>
+    </button>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="toggleImplimentSidebar()"></div>
+
+    <!-- Implementation Sidebar -->
+    <div class="impliment-sidebar" id="implimentSidebar">
+        <div class="impliment-sidebar-header">
+            <h5 class="mb-0"><i class="bi bi-list-task"></i> Implementation Notes</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="toggleImplimentSidebar()"></button>
+        </div>
+        <div class="impliment-sidebar-content">
+            <div class="impliment-item">
+                <h6>GR Basic Details</h6>
+                <p>Status should be "booked" when creating new bilty</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Vendor Selection</h6>
+                <p>Vendor list should load and address should populate automatically</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Party / Customer Details</h6>
+                <p>When vendor is selected, load details in Consignor fields with address</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Bill To / Ship To Party</h6>
+                <p>Should be fetched from consignor and consignee respectively</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Vehicle / Transport Details</h6>
+                <p>When selecting vehicle, load respective details in Vehicle fields</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Driver Details</h6>
+                <p>Should be loaded from driver table and update in bilty</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Freight / Charge Heads</h6>
+                <p>Add dropdown to select from ratelists, fields should update automatically</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Payment / Collection Details</h6>
+                <p>Payment Status should be marked automatically based on payment received and Freight due</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Remove Proof / Delivery Confirmation</h6>
+                <p>Remove from Bilty creation form</p>
+            </div>
+            <div class="impliment-item">
+                <h6>New Tab - Proof / Delivery Confirmation</h6>
+                <p>Select from bilty list, upload proof with: Delivered By, Received By Name, POD Number, Seal Number, Damage/Shortage Report, Closed By, attachment space. Mark delivery as completed.</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Payment Receipts</h6>
+                <p>Add Bilty dropdown, load Balance amount automatically. User enters amount received. If short, difference marked as TDS (editable). If still pending, optional amount field with reason. Multiple receipts allowed until balance is zero.</p>
+            </div>
+            <div class="impliment-item">
+                <h6>Payment Calculation</h6>
+                <p>Net freight + GST = Freight Due. Freight Due - Advance = Balance. Advance = Paid Amount. Paid = Freight Due = Paid Amount. Unpaid = Freight Due > Paid Amount.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-truck"></i> Transport MS
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a></li>
+            {% if can_manage_tenants() %}
+            <li><a href="{{ url_for('tenants') }}" class="{% if request.endpoint in ['tenants', 'create_tenant', 'edit_tenant', 'tenant_permissions'] %}active{% endif %}">
+                <i class="bi bi-buildings"></i> Tenants
+            </a></li>
+            {% endif %}
+            {% if can_manage_users() %}
+            <li><a href="{{ url_for('users') }}" class="{% if request.endpoint in ['users', 'create_user', 'edit_user', 'reset_user_password'] %}active{% endif %}">
+                <i class="bi bi-people"></i> Users
+            </a></li>
+            {% endif %}
+            {% if has_permission('transport_bills', 'view') %}
+            <li><a href="{{ url_for('transport_bills') }}" class="{% if request.endpoint in ['transport_bills', 'create_transport_bill', 'edit_transport_bill'] %}active{% endif %}">
+                <i class="bi bi-file-text"></i> Bilty Generation
+            </a></li>
+            {% endif %}
+            {% if has_permission('transport_bills', 'edit') %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('delivery_confirmation') }}">
+                    <i class="bi bi-check-circle"></i> Delivery Confirmation
+                </a>
+            </li>
+            {% endif %}
+            {% if has_permission('transport_bills', 'edit') %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('payment_receipts') }}">
+                    <i class="bi bi-receipt"></i> Payment Receipts
+                </a>
+            </li>
+            {% endif %}
+            {% if has_permission('vendors', 'view') %}
+            <li><a href="{{ url_for('vendors') }}" class="{% if request.endpoint in ['vendors', 'create_vendor', 'edit_vendor'] %}active{% endif %}">
+                <i class="bi bi-shop"></i> Vendors
+            </a></li>
+            {% endif %}
+            {% if has_permission('vehicles', 'view') %}
+            <li><a href="{{ url_for('vehicles') }}" class="{% if request.endpoint in ['vehicles', 'create_vehicle', 'edit_vehicle'] %}active{% endif %}">
+                <i class="bi bi-car-front"></i> Vehicles
+            </a></li>
+            {% endif %}
+            {% if has_permission('drivers', 'view') %}
+            <li><a href="{{ url_for('drivers') }}" class="{% if request.endpoint in ['drivers', 'create_driver', 'edit_driver'] %}active{% endif %}">
+                <i class="bi bi-person-vcard"></i> Drivers
+            </a></li>
+            {% endif %}
+            {% if has_permission('expenses', 'view') %}
+            <li><a href="{{ url_for('expenses') }}" class="{% if request.endpoint in ['expenses', 'create_expense', 'edit_expense'] %}active{% endif %}">
+                <i class="bi bi-wallet2"></i> Expenses
+            </a></li>
+            {% endif %}
+            {% if has_permission('loans', 'view') %}
+            <li><a href="{{ url_for('loans') }}" class="{% if request.endpoint in ['loans', 'create_loan', 'edit_loan'] %}active{% endif %}">
+                <i class="bi bi-bank"></i> Loans
+            </a></li>
+            {% endif %}
+            {% if has_permission('locations', 'view') %}
+            <li><a href="{{ url_for('locations') }}" class="{% if request.endpoint in ['locations', 'create_location', 'edit_location'] %}active{% endif %}">
+                <i class="bi bi-currency-dollar"></i> Rate List
+            </a></li>
+            {% endif %}
+            {% if has_permission('delivery_types', 'view') %}
+            <li><a href="{{ url_for('delivery_types') }}" class="{% if request.endpoint in ['delivery_types', 'create_delivery_type', 'edit_delivery_type'] %}active{% endif %}">
+                <i class="bi bi-box-seam"></i> Delivery Types
+            </a></li>
+            {% endif %}
+            {% if has_permission('reports', 'view') %}
+            <li><a href="{{ url_for('reports') }}" class="{% if request.endpoint in ['reports', 'generate_report'] %}active{% endif %}">
+                <i class="bi bi-graph-up"></i> Reports
+            </a></li>
+            {% endif %}
+        </ul>
+        <div class="sidebar-footer">
+            <div class="user-meta">
+                <div class="fw-semibold">{{ current_user.full_name if current_user else 'Guest' }}</div>
+                <div class="tenant-meta">{{ current_user.role.replace('_', ' ').title() if current_user else '' }}</div>
+                {% if current_tenant %}
+                <div class="tenant-meta">{{ current_tenant.name }}</div>
+                {% endif %}
+                {% if is_impersonating and original_user %}
+                <div class="tenant-meta">Original: {{ original_user.full_name }}</div>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-link">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% if is_impersonating and original_user %}
+        <div class="alert impersonation-banner d-flex justify-content-between align-items-center" role="alert">
+            <div>
+                Impersonating <strong>{{ current_user.full_name }}</strong>
+                {% if current_tenant %}for {{ current_tenant.name }}{% endif %}.
+                Actions are being performed as that user.
+            </div>
+            <a href="{{ url_for('exit_impersonation') }}" class="btn btn-sm btn-dark">Exit Impersonation</a>
+        </div>
+        {% endif %}
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleImplimentSidebar() {
+            const sidebar = document.getElementById('implimentSidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

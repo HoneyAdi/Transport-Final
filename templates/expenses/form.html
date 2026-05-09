@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Add' }} Expense - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-wallet2"></i> {{ 'Edit' if edit else 'Add' }} Expense</h4>
+    {% if edit %}
+    <small class="text-muted">{{ expense.name }}</small>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% include '_tenant_selector.html' %}
+            <!-- Expense Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-receipt"></i> Expense Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Date <span class="text-danger">*</span></label>
+                    <input type="date" name="expense_date" class="form-control" 
+                           value="{{ expense.expense_date.strftime('%Y-%m-%d') if edit and expense.expense_date else today }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Category <span class="text-danger">*</span></label>
+                    <select name="category" class="form-select" required>
+                        <option value="">Select Category</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {{ 'selected' if edit and expense.category == cat else '' }}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Amount (Rs.) <span class="text-danger">*</span></label>
+                    <input type="number" name="amount" class="form-control" step="0.01" min="0"
+                           value="{{ '%.2f'|format(expense.amount|float) if edit else '' }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="Pending" {{ 'selected' if edit and expense.status == 'Pending' else '' }}>Pending</option>
+                        <option value="Paid" {{ 'selected' if edit and expense.status == 'Paid' else '' }}>Paid</option>
+                        <option value="Cancelled" {{ 'selected' if edit and expense.status == 'Cancelled' else '' }}>Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Vehicle & Location -->
+            <h6 class="text-primary mb-3"><i class="bi bi-truck"></i> Vehicle & Location</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Vehicle</label>
+                    <select name="vehicle_id" class="form-select">
+                        <option value="">-- Select Vehicle --</option>
+                        {% for veh in vehicles %}
+                        <option value="{{ veh.id }}" {{ 'selected' if edit and expense.vehicle_id == veh.id else '' }}>
+                            {{ veh.registration_number }}{% if veh.vehicle_type %} ({{ veh.vehicle_type }}){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Location</label>
+                    <select name="location_id" class="form-select">
+                        <option value="">-- Select Location --</option>
+                        {% for loc in locations %}
+                        <option value="{{ loc.id }}" {{ 'selected' if edit and expense.location_id == loc.id else '' }}>
+                            {{ loc.location }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Vendor Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-shop"></i> Vendor Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Select Vendor</label>
+                    <select class="form-select" id="vendor_id" name="vendor_id">
+                        <option value="">-- Select Vendor --</option>
+                        {% for vendor in vendors %}
+                        <option value="{{ vendor.id }}" 
+                                {% if edit and expense.vendor_id == vendor.id %}selected{% endif %}>
+                            {{ vendor.vendor_name }} {% if vendor.gstin %}(GST: {{ vendor.gstin }}){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Vendor Address</label>
+                    <select class="form-select" id="vendor_address_id" name="vendor_address_id" disabled
+                            data-selected-id="{{ expense.vendor_address_id if edit else '' }}">
+                        <option value="">-- Select Vendor First --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Vendor Bill Number</label>
+                    <input type="text" name="bill_number" class="form-control" 
+                           value="{{ expense.bill_number if edit else '' }}" placeholder="Bill/Invoice No.">
+                </div>
+            </div>
+            <!-- Hidden fields to maintain backward compatibility -->
+            <input type="hidden" name="vendor_name" id="vendor_name_hidden" value="{{ expense.vendor_name if edit else '' }}">
+            <input type="hidden" name="vendor_contact" id="vendor_contact_hidden" value="{{ expense.vendor_contact if edit else '' }}">
+
+            <!-- Payment Details -->
+            <h6 class="text-primary mb-3"><i class="bi bi-credit-card"></i> Payment Details</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Payment Method</label>
+                    <select name="payment_method" class="form-select">
+                        <option value="Cash" {{ 'selected' if edit and expense.payment_method == 'Cash' else '' }}>Cash</option>
+                        <option value="Card" {{ 'selected' if edit and expense.payment_method == 'Card' else '' }}>Card</option>
+                        <option value="Bank Transfer" {{ 'selected' if edit and expense.payment_method == 'Bank Transfer' else '' }}>Bank Transfer</option>
+                        <option value="UPI" {{ 'selected' if edit and expense.payment_method == 'UPI' else '' }}>UPI</option>
+                        <option value="Cheque" {{ 'selected' if edit and expense.payment_method == 'Cheque' else '' }}>Cheque</option>
+                        <option value="Credit" {{ 'selected' if edit and expense.payment_method == 'Credit' else '' }}>Credit</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Description</label>
+                    <input type="text" name="description" class="form-control" 
+                           value="{{ expense.description if edit else '' }}" placeholder="Brief description">
+                </div>
+            </div>
+
+            <!-- Additional Notes -->
+            <h6 class="text-primary mb-3"><i class="bi bi-journal-text"></i> Additional Information</h6>
+            <div class="mb-4">
+                <textarea class="form-control" name="notes" rows="3" placeholder="Any additional notes, remarks or details about this expense...">{{ expense.notes if edit else '' }}</textarea>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Save' }} Expense
+                </button>
+                <a href="{{ url_for('expenses') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

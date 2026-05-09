@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Profit/Loss Report - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-graph-down"></i> Profit/Loss Report</h4>
+        <small class="text-muted">Revenue minus expenses analysis</small>
+    </div>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Options</h5>
+    </div>
+    <div class="card-body p-4">
+        <form method="GET" action="{{ url_for('profit_loss_report') }}">
+            <div class="row align-items-end">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="from_date" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="from_date" name="from_date" 
+                               value="{{ from_date.strftime('%Y-%m-%d') if from_date else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="to_date" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="to_date" name="to_date" 
+                               value="{{ to_date.strftime('%Y-%m-%d') if to_date else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Generate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Revenue</h6>
+                <h4 class="mb-0">Rs. {{ "{:,.2f}".format(revenue) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">Expenses</h6>
+                <h4 class="mb-0">Rs. {{ "{:,.2f}".format(expenses) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="card-title">Loan Payments</h6>
+                <h4 class="mb-0">Rs. {{ "{:,.2f}".format(loan_payments) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card {{ 'bg-success' if profit_loss >= 0 else 'bg-danger' }} text-white">
+            <div class="card-body">
+                <h6 class="card-title">Profit/Loss</h6>
+                <h4 class="mb-0">Rs. {{ "{:,.2f}".format(profit_loss) }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Breakdown -->
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Expense Breakdown by Category</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category, amount in expense_breakdown %}
+                    <tr>
+                        <td>{{ category or 'Uncategorized' }}</td>
+                        <td>Rs. {{ "{:,.2f}".format(amount) }}</td>
+                        <td>{{ "{:.1f}".format(amount / expenses * 100) if expenses > 0 else 0 }}%</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center py-4 text-muted">No expense records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

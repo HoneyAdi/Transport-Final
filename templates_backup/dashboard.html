@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0">Dashboard</h4>
+        <small class="text-muted">
+            {% if current_user and current_user.role == 'superadmin' %}
+                Signed in as superadmin
+            {% elif current_tenant %}
+                Signed in to {{ current_tenant.name }}
+            {% endif %}
+        </small>
+    </div>
+    {% if has_permission('transport_bills', 'create') %}
+    <a href="{{ url_for('create_transport_bill') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> New Transport Bill
+    </a>
+    {% endif %}
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Total Bills</h6>
+                        <h3 class="mb-0">{{ stats.total_bills }}</h3>
+                    </div>
+                    <i class="bi bi-file-text fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card secondary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Vehicles</h6>
+                        <h3 class="mb-0">{{ stats.total_vehicles }}</h3>
+                    </div>
+                    <i class="bi bi-car-front fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Locations</h6>
+                        <h3 class="mb-0">{{ stats.total_locations }}</h3>
+                    </div>
+                    <i class="bi bi-geo-alt fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">{% if is_superadmin() %}Tenants{% else %}Delivery Types{% endif %}</h6>
+                        <h3 class="mb-0">{% if is_superadmin() %}{{ stats.total_tenants }}{% else %}{{ stats.total_delivery_types }}{% endif %}</h3>
+                    </div>
+                    <i class="bi {% if is_superadmin() %}bi-buildings{% else %}bi-box-seam{% endif %} fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if has_permission('transport_bills', 'view') %}
+<!-- Recent Bills -->
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Transport Bills</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Bill No</th>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Challan No</th>
+                        <th>Party</th>
+                        <th>Location</th>
+                        <th>Rate</th>
+                        {% if is_superadmin() %}
+                        <th>Tenant</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bill in recent_bills %}
+                    <tr>
+                        <td><span class="badge bg-primary">{{ bill.name }}</span></td>
+                        <td>{{ bill.date.strftime('%Y-%m-%d') if bill.date else '-' }}</td>
+                        <td>{{ bill.vehicle.registration_number if bill.vehicle else '-' }}</td>
+                        <td>{{ bill.challan_number or '-' }}</td>
+                        <td>{{ bill.party_information or '-' }}</td>
+                        <td>{{ bill.location.location if bill.location else '-' }}</td>
+                        <td>Rs. {{ bill.rate }}</td>
+                        {% if is_superadmin() %}
+                        <td>{{ bill.tenant.name if bill.tenant else '-' }}</td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ 8 if is_superadmin() else 7 }}" class="text-center py-4 text-muted">No bills yet.{% if has_permission('transport_bills', 'create') %} <a href="{{ url_for('create_transport_bill') }}">Create one</a>.{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

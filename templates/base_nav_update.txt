@@ -1,0 +1,17 @@
+            {% if is_superadmin() %}
+            <li><a href="{{ url_for('amendment_requests') }}" class="{% if request.endpoint == 'amendment_requests' %}active{% endif %}">
+                <i class="bi bi-clipboard-check"></i> Amendment Requests
+            </a></li>
+            <li class="nav-item mt-3">
+                <small class="text-muted px-3">SUBSCRIPTION</small>
+            </li>
+            <li><a href="{{ url_for('subscription_plans') }}" class="{% if request.endpoint in ['subscription_plans', 'create_subscription_plan', 'edit_subscription_plan'] %}active{% endif %}">
+                <i class="bi bi-card-list"></i> Subscription Plans
+            </a></li>
+            <li><a href="{{ url_for('tenant_subscriptions') }}" class="{% if request.endpoint in ['tenant_subscriptions', 'assign_tenant_subscription', 'record_subscription_payment'] %}active{% endif %}">
+                <i class="bi bi-people"></i> Tenant Subscriptions
+            </a></li>
+            {% endif %}
+            <li class="nav-item mt-3">
+                <small class="text-muted px-3">SETTINGS</small>
+            </li>

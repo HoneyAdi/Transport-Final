@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-person-circle"></i> My Profile</h4>
+        <small class="text-muted">View and manage your account details</small>
+    </div>
+    <div>
+        <a href="{{ url_for('request_amendment') }}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Request Amendment
+        </a>
+    </div>
+</div>
+
+<!-- Profile Information -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-person-circle" style="font-size: 80px; color: var(--primary-color);"></i>
+                </div>
+                <h5 class="card-title">{{ current_user.full_name }}</h5>
+                <p class="text-muted">{{ current_user.email }}</p>
+                <span class="badge bg-primary">{{ current_user.role.replace('_', ' ').title() }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Account Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th width="30%">Username</th>
+                            <td>{{ current_user.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Full Name</th>
+                            <td>{{ current_user.full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>{{ current_user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Role</th>
+                            <td>{{ current_user.role.replace('_', ' ').title() }}</td>
+                        </tr>
+                        <tr>
+                            <th>Tenant</th>
+                            <td>{{ current_tenant.name if current_tenant else 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td>
+                                {% if current_user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Member Since</th>
+                            <td>{{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Amendment Requests History -->
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Amendment Request History</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Fields Changed</th>
+                        <th>Type</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in current_user.amendment_requests %}
+                    <tr>
+                        <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') if request.created_at else '-' }}</td>
+                        <td>
+                            {% set changes = request.field_changes|from_json %}
+                            {% for field, values in changes.items() %}
+                            <span class="badge bg-secondary">{{ field }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <span class="badge {{ 'bg-warning' if request.change_type == 'major' else 'bg-info' }}">
+                                {{ request.change_type|title }}
+                            </span>
+                        </td>
+                        <td>{{ request.reason[:50] }}{% if request.reason|length > 50 %}...{% endif %}</td>
+                        <td>
+                            {% if request.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                            {% elif request.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                            {% elif request.status == 'auto_approved' %}
+                            <span class="badge bg-success">Auto-Approved</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">No amendment requests found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

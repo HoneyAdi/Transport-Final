@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Shipment - {{ trip.trip_number }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8fafc; color: #111827; }
+        .tracking-card { max-width: 760px; margin: 24px auto; border: 1px solid #e5e7eb; border-radius: 12px; }
+        .status-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-right: 8px; background: #2563eb; }
+    </style>
+</head>
+<body>
+<main class="container">
+    <div class="card tracking-card shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h3 class="mb-1">Shipment Tracking</h3>
+                    <div class="text-muted">{{ trip.trip_number }}</div>
+                </div>
+                <span class="badge bg-primary">{{ trip.status.replace('_', ' ').title() }}</span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6">
+                    <div class="text-muted small">Bilty</div>
+                    <strong>{{ trip.bilty.name if trip.bilty else '-' }}</strong>
+                </div>
+                <div class="col-sm-6">
+                    <div class="text-muted small">Vehicle</div>
+                    <strong>{{ trip.vehicle.registration_number if trip.vehicle else '-' }}</strong>
+                </div>
+                <div class="col-sm-6">
+                    <div class="text-muted small">Origin</div>
+                    <strong>{{ trip.origin or '-' }}</strong>
+                </div>
+                <div class="col-sm-6">
+                    <div class="text-muted small">Destination</div>
+                    <strong>{{ trip.destination or '-' }}</strong>
+                </div>
+            </div>
+
+            <div class="p-3 bg-light rounded mb-3">
+                <div><span class="status-dot"></span><strong>Current Update</strong></div>
+                <div class="mt-2">{{ trip.current_location or 'Shipment is being prepared.' }}</div>
+                {% if trip.last_tracking_update_at %}
+                <small class="text-muted">Updated {{ trip.last_tracking_update_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                {% endif %}
+            </div>
+
+            {% if trip.delay_reason %}
+            <div class="alert alert-warning">
+                <strong>Delay:</strong> {{ trip.delay_reason }}
+            </div>
+            {% endif %}
+
+            {% if trip.status == 'delivered' %}
+            <div class="alert alert-success mb-0">
+                Delivered{% if trip.received_by_name %} to {{ trip.received_by_name }}{% endif %}.
+                {% if trip.pod_number %} POD: {{ trip.pod_number }}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+</body>
+</html>

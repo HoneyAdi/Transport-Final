@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Add' }} Vehicle - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-car-front"></i> {{ 'Edit' if edit else 'Add' }} Vehicle</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% include '_tenant_selector.html' %}
+            <!-- Basic Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Basic Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Registration Number <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="registration_number" 
+                           value="{{ vehicle.registration_number if edit else '' }}" required 
+                           placeholder="e.g., MH01AB1234">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Vehicle Type</label>
+                    <select class="form-select" name="vehicle_type">
+                        <option value="">Select Type</option>
+                        <option value="Truck" {{ 'selected' if edit and vehicle.vehicle_type == 'Truck' else '' }}>Truck</option>
+                        <option value="Van" {{ 'selected' if edit and vehicle.vehicle_type == 'Van' else '' }}>Van</option>
+                        <option value="Container" {{ 'selected' if edit and vehicle.vehicle_type == 'Container' else '' }}>Container</option>
+                        <option value="Trailer" {{ 'selected' if edit and vehicle.vehicle_type == 'Trailer' else '' }}>Trailer</option>
+                        <option value="Tempo" {{ 'selected' if edit and vehicle.vehicle_type == 'Tempo' else '' }}>Tempo</option>
+                        <option value="Bus" {{ 'selected' if edit and vehicle.vehicle_type == 'Bus' else '' }}>Bus</option>
+                        <option value="Other" {{ 'selected' if edit and vehicle.vehicle_type == 'Other' else '' }}>Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="Active" {{ 'selected' if edit and vehicle.status == 'Active' else '' }}>Active</option>
+                        <option value="Inactive" {{ 'selected' if edit and vehicle.status == 'Inactive' else '' }}>Inactive</option>
+                        <option value="Under Maintenance" {{ 'selected' if edit and vehicle.status == 'Under Maintenance' else '' }}>Under Maintenance</option>
+                        <option value="Sold" {{ 'selected' if edit and vehicle.status == 'Sold' else '' }}>Sold</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Purchase Date</label>
+                    <input type="date" class="form-control" name="purchase_date" 
+                           value="{{ vehicle.purchase_date.strftime('%Y-%m-%d') if edit and vehicle.purchase_date else '' }}">
+                </div>
+            </div>
+
+            <!-- Vehicle Details -->
+            <h6 class="text-primary mb-3"><i class="bi bi-gear"></i> Vehicle Details</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Make (Manufacturer)</label>
+                    <input type="text" class="form-control" name="make" 
+                           value="{{ vehicle.make if edit else '' }}" placeholder="e.g., Tata, Ashok Leyland">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Model</label>
+                    <input type="text" class="form-control" name="model" 
+                           value="{{ vehicle.model if edit else '' }}" placeholder="e.g., 407, 2518">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Year</label>
+                    <input type="number" class="form-control" name="year" min="1990" max="2099"
+                           value="{{ vehicle.year if edit else '' }}" placeholder="e.g., 2022">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Color</label>
+                    <input type="text" class="form-control" name="color" 
+                           value="{{ vehicle.color if edit else '' }}" placeholder="e.g., White">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Fuel Type</label>
+                    <select class="form-select" name="fuel_type">
+                        <option value="">Select</option>
+                        <option value="Diesel" {{ 'selected' if edit and vehicle.fuel_type == 'Diesel' else '' }}>Diesel</option>
+                        <option value="Petrol" {{ 'selected' if edit and vehicle.fuel_type == 'Petrol' else '' }}>Petrol</option>
+                        <option value="CNG" {{ 'selected' if edit and vehicle.fuel_type == 'CNG' else '' }}>CNG</option>
+                        <option value="Electric" {{ 'selected' if edit and vehicle.fuel_type == 'Electric' else '' }}>Electric</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Capacity & IDs -->
+            <h6 class="text-primary mb-3"><i class="bi bi-box-seam"></i> Capacity & Identification</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Seating Capacity</label>
+                    <input type="number" class="form-control" name="seating_capacity" min="1"
+                           value="{{ vehicle.seating_capacity if edit else '' }}" placeholder="No. of seats">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Load Capacity (kg)</label>
+                    <input type="number" class="form-control" name="load_capacity_kg" min="0"
+                           value="{{ vehicle.load_capacity_kg if edit else '' }}" placeholder="Weight in kg">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Engine Number</label>
+                    <input type="text" class="form-control" name="engine_number" 
+                           value="{{ vehicle.engine_number if edit else '' }}" placeholder="Engine No.">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Chassis Number</label>
+                    <input type="text" class="form-control" name="chassis_number" 
+                           value="{{ vehicle.chassis_number if edit else '' }}" placeholder="Chassis No.">
+                </div>
+            </div>
+
+            <!-- Owner Information -->
+            <h6 class="text-primary mb-3"><i class="bi bi-person"></i> Owner Information</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Owner Name</label>
+                    <input type="text" class="form-control" name="owner_name" 
+                           value="{{ vehicle.owner_name if edit else '' }}" placeholder="Full name">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Owner Contact</label>
+                    <input type="text" class="form-control" name="owner_contact" 
+                           value="{{ vehicle.owner_contact if edit else '' }}" placeholder="Phone number">
+                </div>
+            </div>
+
+            <!-- Document Expiry Dates & Certificates -->
+            <h6 class="text-primary mb-3"><i class="bi bi-calendar-check"></i> Document Expiry Dates & Certificates</h6>
+
+            <!-- Insurance -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Insurance Expiry Date</label>
+                    <input type="date" class="form-control" name="insurance_expiry"
+                           value="{{ vehicle.insurance_expiry.strftime('%Y-%m-%d') if edit and vehicle.insurance_expiry else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Insurance Certificate</label>
+                    {% if edit and vehicle.insurance_attachment_path %}
+                    <div class="mb-2">
+                        <a href="{{ vehicle.insurance_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-file-earmark"></i> View Current
+                        </a>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="insurance_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+
+            <!-- Fitness Certificate -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Fitness Certificate Expiry Date</label>
+                    <input type="date" class="form-control" name="fitness_expiry"
+                           value="{{ vehicle.fitness_expiry.strftime('%Y-%m-%d') if edit and vehicle.fitness_expiry else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Fitness Certificate</label>
+                    {% if edit and vehicle.fitness_certificate_path %}
+                    <div class="mb-2">
+                        <a href="{{ vehicle.fitness_certificate_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-file-earmark"></i> View Current
+                        </a>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="fitness_certificate" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+
+            <!-- Permit 1 Year -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Permit 1 Year Expiry Date</label>
+                    <input type="date" class="form-control" name="permit_1_year_expiry"
+                           value="{{ vehicle.permit_1_year_expiry.strftime('%Y-%m-%d') if edit and vehicle.permit_1_year_expiry else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Permit 1 Year Certificate</label>
+                    {% if edit and vehicle.permit_1_year_attachment_path %}
+                    <div class="mb-2">
+                        <a href="{{ vehicle.permit_1_year_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-file-earmark"></i> View Current
+                        </a>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="permit_1_year_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+
+            <!-- Permit 5 Year -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Permit 5 Year Expiry Date</label>
+                    <input type="date" class="form-control" name="permit_5_year_expiry"
+                           value="{{ vehicle.permit_5_year_expiry.strftime('%Y-%m-%d') if edit and vehicle.permit_5_year_expiry else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Permit 5 Year Certificate</label>
+                    {% if edit and vehicle.permit_5_year_attachment_path %}
+                    <div class="mb-2">
+                        <a href="{{ vehicle.permit_5_year_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-file-earmark"></i> View Current
+                        </a>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="permit_5_year_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+
+            <!-- Road Tax -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Road Tax Expiry Date</label>
+                    <input type="date" class="form-control" name="road_tax_expiry"
+                           value="{{ vehicle.road_tax_expiry.strftime('%Y-%m-%d') if edit and vehicle.road_tax_expiry else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Road Tax Certificate</label>
+                    {% if edit and vehicle.road_tax_attachment_path %}
+                    <div class="mb-2">
+                        <a href="{{ vehicle.road_tax_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-file-earmark"></i> View Current
+                        </a>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="road_tax_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+
+            <!-- PUC -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">PUC Pollution Expiry Date</label>
+                    <input type="date" class="form-control" name="puc_expiry"
+                           value="{{ vehicle.puc_expiry.strftime('%Y-%m-%d') if edit and vehicle.puc_expiry else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">PUC Certificate</label>
+                    {% if edit and vehicle.puc_attachment_path %}
+                    <div class="mb-2">
+                        <a href="{{ vehicle.puc_attachment_path }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-file-earmark"></i> View Current
+                        </a>
+                    </div>
+                    {% endif %}
+                    <input type="file" class="form-control" name="puc_attachment" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <h6 class="text-primary mb-3"><i class="bi bi-journal-text"></i> Additional Notes</h6>
+            <div class="mb-4">
+                <textarea class="form-control" name="notes" rows="3" placeholder="Any additional information about the vehicle...">{{ vehicle.notes if edit else '' }}</textarea>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }} Vehicle
+                </button>
+                <a href="{{ url_for('vehicles') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

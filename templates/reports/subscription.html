@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Subscription Status Report - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-calendar-check"></i> Subscription Status Report</h4>
+        <small class="text-muted">Plan expirations and renewals</small>
+    </div>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">Expired</h6>
+                <h2 class="mb-0">{{ expired|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="card-title">Expiring Soon (30 days)</h6>
+                <h2 class="mb-0">{{ expiring_soon|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Active</h6>
+                <h2 class="mb-0">{{ active|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expired Tenants -->
+{% if expired %}
+<div class="card mb-4">
+    <div class="card-header bg-danger py-3">
+        <h5 class="mb-0"><i class="bi bi-exclamation-circle"></i> Expired Subscriptions ({{ expired|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tenant Name</th>
+                        <th>Plan</th>
+                        <th>Expiry Date</th>
+                        <th>Days Overdue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in expired %}
+                    <tr>
+                        <td>{{ tenant.name }}</td>
+                        <td>{{ tenant.subscription_plan or 'Basic' }}</td>
+                        <td>{{ tenant.plan_expiry_date.strftime('%Y-%m-%d') if tenant.plan_expiry_date else '-' }}</td>
+                        <td><span class="badge bg-danger">{{ (datetime.now().date() - tenant.plan_expiry_date).days }} days</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Expiring Soon -->
+{% if expiring_soon %}
+<div class="card mb-4">
+    <div class="card-header bg-warning py-3">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Expiring Soon ({{ expiring_soon|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tenant Name</th>
+                        <th>Plan</th>
+                        <th>Expiry Date</th>
+                        <th>Days Remaining</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in expiring_soon %}
+                    <tr>
+                        <td>{{ tenant.name }}</td>
+                        <td>{{ tenant.subscription_plan or 'Basic' }}</td>
+                        <td>{{ tenant.plan_expiry_date.strftime('%Y-%m-%d') if tenant.plan_expiry_date else '-' }}</td>
+                        <td><span class="badge bg-warning">{{ (tenant.plan_expiry_date - datetime.now().date()).days }} days</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Active Tenants -->
+<div class="card">
+    <div class="card-header bg-success py-3">
+        <h5 class="mb-0"><i class="bi bi-check-circle"></i> Active Subscriptions ({{ active|length }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tenant Name</th>
+                        <th>Plan</th>
+                        <th>Expiry Date</th>
+                        <th>Days Remaining</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in active %}
+                    <tr>
+                        <td>{{ tenant.name }}</td>
+                        <td>{{ tenant.subscription_plan or 'Basic' }}</td>
+                        <td>{{ tenant.plan_expiry_date.strftime('%Y-%m-%d') if tenant.plan_expiry_date else 'Not set' }}</td>
+                        <td>
+                            {% if tenant.plan_expiry_date %}
+                            <span class="badge bg-success">{{ (tenant.plan_expiry_date - datetime.now().date()).days }} days</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Not set</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">No active tenants found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

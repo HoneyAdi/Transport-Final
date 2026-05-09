@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Record Payment - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-cash"></i> Record Payment</h4>
+        <small class="text-muted">Tenant: {{ subscription.tenant.name }}</small>
+    </div>
+    <a href="{{ url_for('tenant_subscriptions') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Subscriptions
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-gear"></i> Payment Details</h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="alert alert-info">
+            <strong>Current Subscription:</strong> {{ subscription.plan.name if subscription.plan else 'Custom' }}<br>
+            <strong>Billing Cycle:</strong> {{ subscription.billing_cycle|title }}<br>
+            <strong>Expiry Date:</strong> {{ subscription.expiry_date.strftime('%Y-%m-%d') if subscription.expiry_date else '-' }}
+        </div>
+
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount (₹) <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" class="form-control" id="amount" name="amount" required
+                               placeholder="e.g., 999">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="payment_date" class="form-label">Payment Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="payment_date" name="payment_date" required
+                               value="{{ datetime.now().strftime('%Y-%m-%d') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Payment Method</label>
+                        <select class="form-select" id="payment_method" name="payment_method">
+                            <option value="manual">Manual</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="cash">Cash</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="transaction_id" class="form-label">Transaction ID / Reference</label>
+                        <input type="text" class="form-control" id="transaction_id" name="transaction_id" 
+                               placeholder="e.g., TXN123456">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3"
+                          placeholder="Any additional payment details..."></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Record Payment
+                </button>
+                <a href="{{ url_for('tenant_subscriptions') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

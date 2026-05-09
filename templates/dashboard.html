@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0 fw-bold">Dashboard</h4>
+        <small class="text-muted">
+            {% if current_user and current_user.role == 'superadmin' %}
+                Signed in as superadmin
+            {% elif current_tenant %}
+                Signed in to {{ current_tenant.name }}
+            {% endif %}
+        </small>
+    </div>
+    {% if has_permission('transport_bills', 'create') %}
+    <a href="{{ url_for('create_transport_bill') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i> New Transport Bill
+    </a>
+    {% endif %}
+</div>
+
+<!-- Key Metrics Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <a href="{{ url_for('transport_bills') }}" class="text-decoration-none">
+            <div class="card stat-card hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 opacity-75">Total Bills</h6>
+                            <h2 class="mb-0 fw-bold">{{ stats.total_bills }}</h2>
+                        </div>
+                        <i class="bi bi-file-text fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('transport_bills') }}" class="text-decoration-none">
+            <div class="card stat-card secondary hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 opacity-75">Total Freight</h6>
+                            <h2 class="mb-0 fw-bold">Rs. {{ "{:,.0f}".format(stats.total_freight) }}</h2>
+                        </div>
+                        <i class="bi bi-currency-rupee fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('payment_receipts') }}" class="text-decoration-none">
+            <div class="card stat-card success hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 opacity-75">Total Paid</h6>
+                            <h2 class="mb-0 fw-bold">Rs. {{ "{:,.0f}".format(stats.total_paid) }}</h2>
+                        </div>
+                        <i class="bi bi-check-circle fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('payment_receipts') }}" class="text-decoration-none">
+            <div class="card stat-card info hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 opacity-75">Total Balance</h6>
+                            <h2 class="mb-0 fw-bold">Rs. {{ "{:,.0f}".format(stats.total_balance) }}</h2>
+                        </div>
+                        <i class="bi bi-exclamation-circle fs-1 opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Loan and Vendor Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <a href="{{ url_for('loans') }}" class="text-decoration-none">
+            <div class="card hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0 fw-bold">Active Loans</h6>
+                        <span class="badge bg-primary">{{ stats.total_loans }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Total Amount</small>
+                        <small class="fw-bold">Rs. {{ "{:,.0f}".format(stats.total_loan_amount) }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Paid</small>
+                        <small class="fw-bold text-success">Rs. {{ "{:,.0f}".format(stats.total_loan_paid) }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">Balance</small>
+                        <small class="fw-bold text-danger">Rs. {{ "{:,.0f}".format(stats.total_loan_balance) }}</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{{ url_for('transport_bills') }}" class="text-decoration-none">
+            <div class="card hover-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0 fw-bold">Unpaid Bills</h6>
+                        <span class="badge bg-danger">{{ stats.unpaid_bills_count }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Total Vehicles</small>
+                        <a href="{{ url_for('vehicles') }}" class="fw-bold text-decoration-none">{{ stats.total_vehicles }}</a>
+                    </div>
+                    {% if has_permission('dispatch', 'view') %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Active Trips</small>
+                        <a href="{{ url_for('dispatch_trips') }}" class="fw-bold text-info text-decoration-none">{{ stats.active_trips }}</a>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="text-muted">Delivery Types</small>
+                        <a href="{{ url_for('delivery_types') }}" class="fw-bold text-decoration-none">{{ stats.total_delivery_types }}</a>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">Pending Deliveries</small>
+                        <a href="{{ url_for('delivery_confirmation') }}" class="fw-bold text-warning text-decoration-none">{{ pending_deliveries|length }}</a>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="mb-3 fw-bold">Quick Actions</h6>
+                <div class="d-grid gap-2">
+                    {% if has_permission('transport_bills', 'create') %}
+                    <a href="{{ url_for('create_transport_bill') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-lg me-2"></i> New Bilty
+                    </a>
+                    {% endif %}
+                    {% if has_permission('dispatch', 'create') %}
+                    <a href="{{ url_for('create_dispatch_trip') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-truck-front me-2"></i> Plan Trip
+                    </a>
+                    {% endif %}
+                    {% if has_permission('transport_bills', 'edit') %}
+                    <a href="{{ url_for('payment_receipts') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-receipt me-2"></i> Add Payment
+                    </a>
+                    {% endif %}
+                    {% if has_permission('loans', 'create') %}
+                    <a href="{{ url_for('create_loan') }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-bank me-2"></i> Add Loan
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if active_trips %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-transparent py-3 border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-truck-front me-2"></i> Active Dispatch Trips</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Trip</th>
+                                <th>Bilty</th>
+                                <th>Vehicle</th>
+                                <th>Route</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trip in active_trips %}
+                            <tr class="cursor-pointer" onclick="window.location.href='{{ url_for('dispatch_trips') }}';">
+                                <td><span class="badge bg-primary">{{ trip.trip_number }}</span></td>
+                                <td>{{ trip.bilty.name if trip.bilty else '-' }}</td>
+                                <td>{{ trip.vehicle.registration_number if trip.vehicle else '-' }}</td>
+                                <td>{{ trip.origin or '-' }} &rarr; {{ trip.destination or '-' }}</td>
+                                <td>{{ trip.status.replace('_', ' ').title() }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Upcoming Loan Payments -->
+{% if upcoming_loan_payments %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-transparent py-3 border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-event me-2"></i> Upcoming Loan Payments</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Loan Name</th>
+                                <th>Bank/Lender</th>
+                                <th>Due Date</th>
+                                <th>EMI Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in upcoming_loan_payments %}
+                            <tr class="cursor-pointer" onclick="window.location.href='{{ url_for('loans') }}';">
+                                <td>{{ payment.loan_name }}</td>
+                                <td>{{ payment.bank_name or '-' }}</td>
+                                <td>
+                                    {% if payment.date %}
+                                        <span class="badge {% if payment.date <= date.today() %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ payment.date.strftime('%Y-%m-%d') }}
+                                        </span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">Rs. {{ "{:,.0f}".format(payment.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top 5 Vendors and Pending Items -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-transparent py-3 border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i> Top 5 Vendors</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if top_vendors %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Vendor Name</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vendor_name, amount in top_vendors %}
+                            <tr class="cursor-pointer" onclick="window.location.href='{{ url_for('vendors') }}';">
+                                <td><span class="badge bg-primary">{{ loop.index }}</span></td>
+                                <td>{{ vendor_name }}</td>
+                                <td class="fw-bold">Rs. {{ "{:,.0f}".format(amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">No vendor data available</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-transparent py-3 border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i> Unpaid Bills</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if unpaid_bills %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Bill No</th>
+                                <th>Party</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in unpaid_bills %}
+                            <tr class="cursor-pointer" onclick="window.location.href='{{ url_for('edit_transport_bill', id=bill.id) }}';">
+                                <td><span class="badge bg-secondary">{{ bill.name }}</span></td>
+                                <td>{{ bill.party_information or '-' }}</td>
+                                <td class="fw-bold text-danger">Rs. {{ "{:,.0f}".format(bill.rate) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">No unpaid bills</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if has_permission('transport_bills', 'view') %}
+<!-- Recent Bills -->
+<div class="card">
+    <div class="card-header bg-transparent py-3 border-0">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i> Recent Transport Bills</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Bill No</th>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Challan No</th>
+                        <th>Party</th>
+                        <th>Location</th>
+                        <th>Rate</th>
+                        {% if is_superadmin() %}
+                        <th>Tenant</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bill in recent_bills %}
+                    <tr class="cursor-pointer" onclick="window.location.href='{{ url_for('edit_transport_bill', id=bill.id) }}';">
+                        <td><span class="badge bg-primary">{{ bill.name }}</span></td>
+                        <td>{{ bill.date.strftime('%Y-%m-%d') if bill.date else '-' }}</td>
+                        <td>{{ bill.vehicle.registration_number if bill.vehicle else '-' }}</td>
+                        <td>{{ bill.challan_number or '-' }}</td>
+                        <td>{{ bill.party_information or '-' }}</td>
+                        <td>{{ bill.location.location if bill.location else '-' }}</td>
+                        <td>Rs. {{ bill.rate }}</td>
+                        {% if is_superadmin() %}
+                        <td>{{ bill.tenant.name if bill.tenant else '-' }}</td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ 8 if is_superadmin() else 7 }}" class="text-center py-4 text-muted">No bills yet.{% if has_permission('transport_bills', 'create') %} <a href="{{ url_for('create_transport_bill') }}" class="text-decoration-none">Create one</a>.{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

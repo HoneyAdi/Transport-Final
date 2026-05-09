@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendor Field Access Logs - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top d-flex justify-content-between align-items-center">
+    <h4 class="mb-0"><i class="bi bi-shield-lock"></i> Vendor Field Access Logs</h4>
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Reports
+    </a>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" class="form-control" name="from_date" value="{{ from_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" class="form-control" name="to_date" value="{{ to_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Vendor</label>
+                <select class="form-select" name="vendor_id">
+                    <option value="">All Vendors</option>
+                    {% for vendor in vendors %}
+                    <option value="{{ vendor.id }}" {% if selected_vendor_id == vendor.id %}selected{% endif %}>
+                        {{ vendor.vendor_name }} ({{ vendor.vendor_code }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Field Category</label>
+                <select class="form-select" name="field_category">
+                    <option value="">All Categories</option>
+                    <option value="basic" {% if selected_field_category == 'basic' %}selected{% endif %}>Basic</option>
+                    <option value="contact" {% if selected_field_category == 'contact' %}selected{% endif %}>Contact</option>
+                    <option value="address" {% if selected_field_category == 'address' %}selected{% endif %}>Address</option>
+                    <option value="gst" {% if selected_field_category == 'gst' %}selected{% endif %}>GST</option>
+                    <option value="financial" {% if selected_field_category == 'financial' %}selected{% endif %}>Financial</option>
+                    <option value="bank" {% if selected_field_category == 'bank' %}selected{% endif %}>Bank</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Vendor</th>
+                        <th>User</th>
+                        <th>Field Name</th>
+                        <th>Category</th>
+                        <th>Can View</th>
+                        <th>Can Edit</th>
+                        <th>Required</th>
+                        <th>Display Order</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for perm_data in field_permissions %}
+                    <tr>
+                        <td><strong>{{ perm_data.vendor.vendor_name }}</strong></td>
+                        <td>{{ perm_data.user.full_name }}</td>
+                        <td>{{ perm_data.permission.field_name }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ perm_data.permission.field_category|title }}</span>
+                        </td>
+                        <td>
+                            {% if perm_data.permission.can_view %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if perm_data.permission.can_edit %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if perm_data.permission.is_required %}
+                            <span class="badge bg-warning text-dark">Yes</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ perm_data.permission.display_order }}</td>
+                        <td>{{ perm_data.created_at.strftime('%Y-%m-%d %H:%M') if perm_data.created_at else '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">
+                            No field access logs found for the selected criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

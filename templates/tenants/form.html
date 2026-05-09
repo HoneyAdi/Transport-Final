@@ -1,0 +1,478 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if edit else 'Create' }} Tenant - Transport Management System{% endblock %}
+
+{% block content %}
+<div class="navbar-top">
+    <h4 class="mb-0"><i class="bi bi-buildings"></i> {{ 'Edit' if edit else 'Create' }} Tenant</h4>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Basic Information -->
+            <div class="accordion mb-4" id="accordionBasic">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasic" aria-expanded="true">
+                            <i class="bi bi-info-circle me-2"></i> Basic Information
+                        </button>
+                    </h2>
+                    <div id="collapseBasic" class="accordion-collapse collapse show" data-bs-parent="#accordionBasic">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tenant Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="name" value="{{ tenant.name if edit else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Slug <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="slug" value="{{ tenant.slug if edit else '' }}" required placeholder="lowercase-with-hyphens">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Contact Email</label>
+                                    <input type="email" class="form-control" name="contact_email" value="{{ tenant.contact_email if edit else '' }}">
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if (edit and tenant.is_active) or not edit %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">Tenant is active</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Information -->
+            <div class="accordion mb-4" id="accordionCompany">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCompany">
+                            <i class="bi bi-building me-2"></i> Company Information
+                        </button>
+                    </h2>
+                    <div id="collapseCompany" class="accordion-collapse collapse" data-bs-parent="#accordionCompany">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Business Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="business_type" required>
+                                        <option value="">Select Business Type</option>
+                                        <option value="Sole Proprietorship" {% if edit and tenant.business_type == 'Sole Proprietorship' %}selected{% endif %}>Sole Proprietorship</option>
+                                        <option value="Partnership" {% if edit and tenant.business_type == 'Partnership' %}selected{% endif %}>Partnership</option>
+                                        <option value="LLP" {% if edit and tenant.business_type == 'LLP' %}selected{% endif %}>LLP (Limited Liability Partnership)</option>
+                                        <option value="Private Limited" {% if edit and tenant.business_type == 'Private Limited' %}selected{% endif %}>Private Limited</option>
+                                        <option value="Public Limited" {% if edit and tenant.business_type == 'Public Limited' %}selected{% endif %}>Public Limited</option>
+                                        <option value="One Person Company" {% if edit and tenant.business_type == 'One Person Company' %}selected{% endif %}>One Person Company</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">PAN Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="pan_number" value="{{ tenant.pan_number if edit else '' }}" required maxlength="10" placeholder="ABCDE1234F">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">GSTIN <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="gstin" value="{{ tenant.gstin if edit else '' }}" required maxlength="15" placeholder="22ABCDE1234F1Z5">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">CIN Number (Optional)</label>
+                                    <input type="text" class="form-control" name="cin_number" value="{{ tenant.cin_number if edit else '' }}" maxlength="25" placeholder="U12345MH2023PTC123456">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Establishment Date</label>
+                                    <input type="date" class="form-control" name="establishment_date" value="{{ tenant.establishment_date.strftime('%Y-%m-%d') if edit and tenant.establishment_date else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Website URL (Optional)</label>
+                                    <input type="url" class="form-control" name="website_url" value="{{ tenant.website_url if edit else '' }}" placeholder="https://www.example.com">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="accordion mb-4" id="accordionContact">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContact">
+                            <i class="bi bi-telephone me-2"></i> Contact Information
+                        </button>
+                    </h2>
+                    <div id="collapseContact" class="accordion-collapse collapse" data-bs-parent="#accordionContact">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Primary Phone <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" name="primary_phone" value="{{ tenant.primary_phone if edit else '' }}" required placeholder="+91 9876543210">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Secondary Contact Person (Optional)</label>
+                                    <input type="text" class="form-control" name="secondary_contact_person" value="{{ tenant.secondary_contact_person if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Secondary Contact Phone (Optional)</label>
+                                    <input type="tel" class="form-control" name="secondary_contact_phone" value="{{ tenant.secondary_contact_phone if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Emergency Contact Name (Optional)</label>
+                                    <input type="text" class="form-control" name="emergency_contact_name" value="{{ tenant.emergency_contact_name if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Emergency Contact Phone (Optional)</label>
+                                    <input type="tel" class="form-control" name="emergency_contact_phone" value="{{ tenant.emergency_contact_phone if edit else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registered Address -->
+            <div class="accordion mb-4" id="accordionAddress">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddress">
+                            <i class="bi bi-geo-alt me-2"></i> Registered Address
+                        </button>
+                    </h2>
+                    <div id="collapseAddress" class="accordion-collapse collapse" data-bs-parent="#accordionAddress">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">Address Line 1 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="reg_address_line1" value="{{ tenant.reg_address_line1 if edit else '' }}" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Address Line 2</label>
+                                    <input type="text" class="form-control" name="reg_address_line2" value="{{ tenant.reg_address_line2 if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">City <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="reg_city" value="{{ tenant.reg_city if edit else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">State <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="reg_state" value="{{ tenant.reg_state if edit else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Pincode <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="reg_pincode" value="{{ tenant.reg_pincode if edit else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Country</label>
+                                    <input type="text" class="form-control" name="reg_country" value="{{ tenant.reg_country if edit else 'India' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Address -->
+            <div class="accordion mb-4" id="accordionBilling">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBilling">
+                            <i class="bi bi-receipt me-2"></i> Billing Address
+                        </button>
+                    </h2>
+                    <div id="collapseBilling" class="accordion-collapse collapse" data-bs-parent="#accordionBilling">
+                        <div class="accordion-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="same_as_registered" name="same_as_registered" {% if edit and tenant.same_as_registered %}checked{% endif %}>
+                                <label class="form-check-label" for="same_as_registered">Same as Registered Address</label>
+                            </div>
+                            <div class="row g-3" id="billing-address-fields">
+                                <div class="col-12">
+                                    <label class="form-label">Address Line 1 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="billing_address_line1" value="{{ tenant.billing_address_line1 if edit else '' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Address Line 2</label>
+                                    <input type="text" class="form-control" name="billing_address_line2" value="{{ tenant.billing_address_line2 if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">City <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="billing_city" value="{{ tenant.billing_city if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">State <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="billing_state" value="{{ tenant.billing_state if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Pincode <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="billing_pincode" value="{{ tenant.billing_pincode if edit else '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Country</label>
+                                    <input type="text" class="form-control" name="billing_country" value="{{ tenant.billing_country if edit else 'India' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Account Details -->
+            <div class="accordion mb-4" id="accordionBank">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBank">
+                            <i class="bi bi-bank me-2"></i> Bank Account Details
+                        </button>
+                    </h2>
+                    <div id="collapseBank" class="accordion-collapse collapse" data-bs-parent="#accordionBank">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Bank Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="bank_name" value="{{ tenant.bank_name if edit else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Bank Branch <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="bank_branch" value="{{ tenant.bank_branch if edit else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Account Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="account_number" value="{{ tenant.account_number if edit else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Account Type</label>
+                                    <select class="form-select" name="account_type">
+                                        <option value="Current" {% if edit and tenant.account_type == 'Current' %}selected{% endif %}>Current</option>
+                                        <option value="Savings" {% if edit and tenant.account_type == 'Savings' %}selected{% endif %}>Savings</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">IFSC Code <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="ifsc_code" value="{{ tenant.ifsc_code if edit else '' }}" required maxlength="11" placeholder="ABCD0123456">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">MICR Code (Optional)</label>
+                                    <input type="text" class="form-control" name="micr_code" value="{{ tenant.micr_code if edit else '' }}" maxlength="9">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">UPI ID (Optional)</label>
+                                    <input type="text" class="form-control" name="upi_id" value="{{ tenant.upi_id if edit else '' }}" placeholder="example@upi">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Details -->
+            <div class="accordion mb-4" id="accordionFinancial">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFinancial">
+                            <i class="bi bi-currency-rupee me-2"></i> Financial Details
+                        </button>
+                    </h2>
+                    <div id="collapseFinancial" class="accordion-collapse collapse" data-bs-parent="#accordionFinancial">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Credit Limit (Optional)</label>
+                                    <input type="number" class="form-control" name="credit_limit" value="{{ tenant.credit_limit if edit else '' }}" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label">Payment Terms (Optional)</label>
+                                    <input type="text" class="form-control" name="payment_terms" value="{{ tenant.payment_terms if edit else '' }}" placeholder="e.g., Net 30 days, 50% advance">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Uploads -->
+            <div class="accordion mb-4" id="accordionDocuments">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDocuments">
+                            <i class="bi bi-file-earmark me-2"></i> Document Uploads
+                        </button>
+                    </h2>
+                    <div id="collapseDocuments" class="accordion-collapse collapse" data-bs-parent="#accordionDocuments">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">GST Certificate <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" name="gst_certificate" accept=".pdf,.jpg,.jpeg,.png" {% if not edit %}required{% endif %}>
+                                    {% if edit and tenant.gst_certificate_path %}
+                                    <small class="text-success"><i class="bi bi-check-circle"></i> Document uploaded</small>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">PAN Card <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" name="pan_card" accept=".pdf,.jpg,.jpeg,.png" {% if not edit %}required{% endif %}>
+                                    {% if edit and tenant.pan_card_path %}
+                                    <small class="text-success"><i class="bi bi-check-circle"></i> Document uploaded</small>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">CIN Certificate (Optional)</label>
+                                    <input type="file" class="form-control" name="cin_certificate" accept=".pdf,.jpg,.jpeg,.png">
+                                    {% if edit and tenant.cin_certificate_path %}
+                                    <small class="text-success"><i class="bi bi-check-circle"></i> Document uploaded</small>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Cancelled Cheque <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" name="cancelled_cheque" accept=".pdf,.jpg,.jpeg,.png" {% if not edit %}required{% endif %}>
+                                    {% if edit and tenant.cancelled_cheque_path %}
+                                    <small class="text-success"><i class="bi bi-check-circle"></i> Document uploaded</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription Details -->
+            <div class="accordion mb-4" id="accordionSubscription">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSubscription">
+                            <i class="bi bi-card-checklist me-2"></i> Subscription Details
+                        </button>
+                    </h2>
+                    <div id="collapseSubscription" class="accordion-collapse collapse" data-bs-parent="#accordionSubscription">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Subscription Plan <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="subscription_plan" required>
+                                        <option value="Basic" {% if edit and tenant.subscription_plan == 'Basic' %}selected{% endif %}>Basic (30 days)</option>
+                                        <option value="Pro" {% if edit and tenant.subscription_plan == 'Pro' %}selected{% endif %}>Pro (90 days)</option>
+                                        <option value="Enterprise" {% if edit and tenant.subscription_plan == 'Enterprise' %}selected{% endif %}>Enterprise (365 days)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Max Users <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="max_users" value="{{ tenant.max_users if edit else 5 }}" required min="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Plan Expiry Date</label>
+                                    <input type="date" class="form-control" name="plan_expiry_date" value="{{ tenant.plan_expiry_date.strftime('%Y-%m-%d') if edit and tenant.plan_expiry_date else '' }}" readonly>
+                                    <small class="text-muted">Auto-calculated based on subscription plan</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if not edit %}
+            <!-- Initial Tenant Admin -->
+            <div class="accordion mb-4" id="accordionAdmin">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdmin">
+                            <i class="bi bi-person-gear me-2"></i> Initial Tenant Admin
+                        </button>
+                    </h2>
+                    <div id="collapseAdmin" class="accordion-collapse collapse" data-bs-parent="#accordionAdmin">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="admin_full_name" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Username <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="admin_username" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" name="admin_email" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Temporary Password <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="admin_password" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Update' if edit else 'Create' }} Tenant
+                </button>
+                <a href="{{ url_for('tenants') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Handle "Same as Registered Address" checkbox
+    const sameAsRegistered = document.getElementById('same_as_registered');
+    const billingFields = document.getElementById('billing-address-fields');
+    
+    if (sameAsRegistered) {
+        sameAsRegistered.addEventListener('change', function () {
+            if (this.checked) {
+                // Copy values from registered address
+                document.querySelector('[name="billing_address_line1"]').value = document.querySelector('[name="reg_address_line1"]').value;
+                document.querySelector('[name="billing_address_line2"]').value = document.querySelector('[name="reg_address_line2"]').value;
+                document.querySelector('[name="billing_city"]').value = document.querySelector('[name="reg_city"]').value;
+                document.querySelector('[name="billing_state"]').value = document.querySelector('[name="reg_state"]').value;
+                document.querySelector('[name="billing_pincode"]').value = document.querySelector('[name="reg_pincode"]').value;
+                document.querySelector('[name="billing_country"]').value = document.querySelector('[name="reg_country"]').value;
+                
+                // Disable billing fields
+                billingFields.querySelectorAll('input').forEach(input => input.disabled = true);
+            } else {
+                // Enable billing fields
+                billingFields.querySelectorAll('input').forEach(input => input.disabled = false);
+            }
+        });
+    }
+
+    // Auto-calculate plan expiry date based on subscription plan
+    const subscriptionPlan = document.querySelector('[name="subscription_plan"]');
+    const planExpiryDate = document.querySelector('[name="plan_expiry_date"]');
+    
+    if (subscriptionPlan && planExpiryDate) {
+        subscriptionPlan.addEventListener('change', function () {
+            const today = new Date();
+            let daysToAdd = 30; // Default for Basic
+            
+            switch (this.value) {
+                case 'Basic':
+                    daysToAdd = 30;
+                    break;
+                case 'Pro':
+                    daysToAdd = 90;
+                    break;
+                case 'Enterprise':
+                    daysToAdd = 365;
+                    break;
+            }
+            
+            const expiryDate = new Date(today);
+            expiryDate.setDate(today.getDate() + daysToAdd);
+            planExpiryDate.value = expiryDate.toISOString().split('T')[0];
+        });
+        
+        // Trigger on page load if editing
+        if (subscriptionPlan.value) {
+            subscriptionPlan.dispatchEvent(new Event('change'));
+        }
+    }
+});
+</script>
+{% endblock %}
