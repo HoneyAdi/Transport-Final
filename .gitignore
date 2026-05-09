@@ -1,0 +1,4 @@
+ 
+# SQLite databases 
+instance/*.db 
+instance/*.db-journal 
